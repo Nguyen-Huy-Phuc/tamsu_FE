@@ -1,0 +1,241 @@
+import React, { useState, useEffect, useRef } from "react";
+import type { ReactNode } from "react";
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
+const UserIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+    </svg>
+);
+
+const Settings = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 1v6m0 6v6" />
+        <path d="M1 12h6m6 0h6" />
+    </svg>
+);
+
+const CreditCard = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        <rect width="20" height="14" x="2" y="5" rx="2" />
+        <line x1="2" x2="22" y1="10" y2="10" />
+    </svg>
+);
+
+const HelpCircle = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" x2="12.01" y1="17" y2="17" />
+    </svg>
+);
+
+const LogOutIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        <polyline points="16 17 21 12 16 7" />
+        <line x1="21" x2="9" y1="12" y2="12" />
+    </svg>
+);
+
+interface DropdownMenuProps {
+    children: ReactNode;
+    trigger: ReactNode;
+}
+
+const DropdownMenu = ({ children, trigger }: DropdownMenuProps) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target as Node)
+            ) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    const handleTriggerClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsOpen(!isOpen);
+    };
+
+    return (
+        <div className="relative inline-block text-left" ref={dropdownRef}>
+            <div onClick={handleTriggerClick} className="cursor-pointer">
+                {trigger}
+            </div>
+            {isOpen && (
+                <div
+                    className="origin-top-right absolute right-0 mt-2 w-80 rounded-2xl shadow-2xl bg-white/98 backdrop-blur-xl ring-1 ring-white/30 focus:outline-none z-50 animate-in fade-in-0 zoom-in-95 duration-200 border border-gray-100 overflow-hidden"
+                    role="menu"
+                    aria-orientation="vertical"
+                >
+                    {children}
+                </div>
+            )}
+        </div>
+    );
+};
+
+interface DropdownMenuItemProps {
+    children: ReactNode;
+    onClick?: () => void;
+}
+
+const DropdownMenuItem = ({ children, onClick }: DropdownMenuItemProps) => (
+    <button
+        onClick={(e: React.MouseEvent) => {
+            e.preventDefault();
+            if (onClick) onClick();
+        }}
+        className="w-full text-gray-700 group flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 transition-all duration-200 transform hover:scale-[1.02]"
+        role="menuitem"
+    >
+        {children}
+    </button>
+);
+
+const DropdownMenuSeparator = () => (
+    <div className="my-1 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+);
+
+const UserProfileDropdown: React.FC = () => {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    if (!user) return null;
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
+
+    // Get user initials
+    const getInitials = (username: string) => {
+        return username.substring(0, 2).toUpperCase();
+    };
+
+    return (
+        <DropdownMenu
+            trigger={
+                <button className="flex items-center space-x-3 p-2 rounded-xl hover:bg-white/20 backdrop-blur-sm transition-all duration-300 border border-white/20">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg">
+                        {getInitials(user.username)}
+                    </div>
+                    <div className="text-left hidden sm:block">
+                        <div className="text-sm font-medium text-gray-700">
+                            {user.username}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                            {user.email}
+                        </div>
+                    </div>
+                </button>
+            }
+        >
+            {/* Enhanced User Info Section */}
+            <div className="px-4 py-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-lg border-b border-gray-100">
+                <div className="flex items-center space-x-3">
+                    <div className="relative">
+                        <div className="w-12 h-12 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white">
+                            {getInitials(user.username)}
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                    </div>
+                    <div>
+                        <div className="text-sm font-bold text-gray-900">
+                            {user.username}
+                        </div>
+                        <div className="text-xs text-gray-600 bg-white/70 px-2 py-0.5 rounded-full">
+                            {user.email}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <DropdownMenuSeparator />
+
+            {/* Enhanced Logout Section */}
+            <div className="py-2">
+                <DropdownMenuItem onClick={handleLogout}>
+                    <div className="w-full flex items-center justify-between p-2 rounded-lg bg-gradient-to-r from-red-50 to-pink-50 border border-red-100 hover:from-red-100 hover:to-pink-100 transition-all duration-200">
+                        <div className="flex items-center">
+                            <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                                <LogOutIcon className="h-4 w-4 text-white" />
+                            </div>
+                            <span className="font-semibold text-red-700">Đăng xuất</span>
+                        </div>
+                    </div>
+                </DropdownMenuItem>
+            </div>
+        </DropdownMenu>
+    );
+};
+
+export default UserProfileDropdown;
