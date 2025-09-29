@@ -96,6 +96,25 @@ const LogOutIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const ShoppingBag = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+        <line x1="3" x2="21" y1="6" y2="6" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+);
+
 interface DropdownMenuProps {
     children: ReactNode;
     trigger: ReactNode;
@@ -154,7 +173,7 @@ const DropdownMenuItem = ({ children, onClick }: DropdownMenuItemProps) => (
             e.preventDefault();
             if (onClick) onClick();
         }}
-        className="w-full text-gray-700 group flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 transition-all duration-200 transform hover:scale-[1.02]"
+        className="w-full text-gray-700 group flex items-center px-3 py-2.5 text-sm rounded-lg hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50 hover:text-rose-600 transition-all duration-200 transform hover:scale-[1.02]"
         role="menuitem"
     >
         {children}
@@ -184,8 +203,8 @@ const UserProfileDropdown: React.FC = () => {
     return (
         <DropdownMenu
             trigger={
-                <button className="flex items-center space-x-3 p-2 rounded-xl hover:bg-white/20 backdrop-blur-sm transition-all duration-300 border border-white/20">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg">
+                <button className="flex items-center space-x-3 p-2 rounded-xl hover:bg-rose-100/30 backdrop-blur-sm transition-all duration-300 border border-rose-200/30">
+                    <div className="w-8 h-8 bg-gradient-to-br from-rose-400 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg">
                         {getInitials(user.username)}
                     </div>
                     <div className="text-left hidden sm:block">
@@ -200,10 +219,10 @@ const UserProfileDropdown: React.FC = () => {
             }
         >
             {/* Enhanced User Info Section */}
-            <div className="px-4 py-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-t-lg border-b border-gray-100">
+            <div className="px-4 py-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-t-lg border-b border-gray-100">
                 <div className="flex items-center space-x-3">
                     <div className="relative">
-                        <div className="w-12 h-12 bg-gradient-to-br from-pink-500 via-purple-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white">
+                        <div className="w-12 h-12 bg-gradient-to-br from-rose-400 via-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white">
                             {getInitials(user.username)}
                         </div>
                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
@@ -221,15 +240,38 @@ const UserProfileDropdown: React.FC = () => {
 
             <DropdownMenuSeparator />
 
+            {/* Profile Menu Items */}
+            <div className="py-2">
+                <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <div className="w-full flex items-center p-2 rounded-lg hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50 transition-all duration-200">
+                        <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-pink-400 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                            <UserIcon className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="font-semibold text-gray-700">Hồ sơ cá nhân</span>
+                    </div>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => navigate('/purchase-history')}>
+                    <div className="w-full flex items-center p-2 rounded-lg hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50 transition-all duration-200">
+                        <div className="w-8 h-8 bg-gradient-to-r from-pink-400 to-rose-400 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                            <ShoppingBag className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="font-semibold text-gray-700">Lịch sử mua gói</span>
+                    </div>
+                </DropdownMenuItem>
+            </div>
+
+            <DropdownMenuSeparator />
+
             {/* Enhanced Logout Section */}
             <div className="py-2">
                 <DropdownMenuItem onClick={handleLogout}>
-                    <div className="w-full flex items-center justify-between p-2 rounded-lg bg-gradient-to-r from-red-50 to-pink-50 border border-red-100 hover:from-red-100 hover:to-pink-100 transition-all duration-200">
+                    <div className="w-full flex items-center justify-between p-2 rounded-lg bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 hover:from-rose-100 hover:to-pink-100 transition-all duration-200">
                         <div className="flex items-center">
-                            <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                            <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-pink-400 rounded-lg flex items-center justify-center mr-3 shadow-md">
                                 <LogOutIcon className="h-4 w-4 text-white" />
                             </div>
-                            <span className="font-semibold text-red-700">Đăng xuất</span>
+                            <span className="font-semibold text-rose-700">Đăng xuất</span>
                         </div>
                     </div>
                 </DropdownMenuItem>

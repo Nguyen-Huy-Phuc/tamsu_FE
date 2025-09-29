@@ -7,6 +7,15 @@ export interface User {
   createdAt: string;
 }
 
+export interface Blog {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  externalLink: string;
+  createdAt: string;
+}
+
 export interface ConsultationPackage {
   id: string;
   name: string;
