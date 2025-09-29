@@ -337,7 +337,7 @@ const CreateBlogPage: React.FC = () => {
                             <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
                                 <LinkIcon className="w-5 h-5 text-pink-600" />
                             </div>
-                            <h2 className="text-2xl font-bold text-gray-900">Link bài viết gốc</h2>
+                            <h2 className="text-2xl font-bold text-gray-900">Link sản phẩm</h2>
                         </div>
 
                         <input
