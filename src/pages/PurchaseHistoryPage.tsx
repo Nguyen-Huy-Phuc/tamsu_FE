@@ -10,7 +10,6 @@ import {
     Filter,
     Search,
     Eye,
-    Download,
     Star,
     MessageCircle,
     Package

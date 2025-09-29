@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import type { DragEvent, ChangeEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, X, Image as ImageIcon, Link as LinkIcon, Type, FileText, Calendar, Eye, Save } from 'lucide-react';
+import { ArrowLeft, Upload, X, Image as ImageIcon, Link as LinkIcon, Type, FileText, Calendar, Save } from 'lucide-react';
 
 interface BlogFormData {
     title: string;

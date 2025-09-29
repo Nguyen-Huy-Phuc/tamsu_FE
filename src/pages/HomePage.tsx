@@ -2,8 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { mockPackages } from '../lib/mockData';
 import {
-  Users, Shield, Heart, CheckCircle, ArrowRight, Phone, Star, Sparkles, Award,
-  Clock, MessageCircle, CheckCircle2, Target
+  Users, Shield, Heart, CheckCircle, ArrowRight, Phone, Star, Sparkles, Award
 } from 'lucide-react';
 
 const HomePage: React.FC = () => {

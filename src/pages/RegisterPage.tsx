@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Lock, Eye, EyeOff, AlertCircle, Mail, Phone } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 interface RegisterFormData {
   username: string;
@@ -21,8 +20,6 @@ const Register: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
-
-  const { register } = useAuth();
   const navigate = useNavigate();
 
   // Completely isolate Register page from global styles

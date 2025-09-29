@@ -7,7 +7,7 @@ import { CheckCircle, MessageCircle, Clock, Phone, Copy } from 'lucide-react';
 const PurchaseSuccessPage: React.FC = () => {
   const { packageId } = useParams<{ packageId: string }>();
   const { user } = useAuth();
-  
+
   const packageData = mockPackages.find(pkg => pkg.id === packageId);
   const zaloLink = packageData && user ? generateZaloLink(packageId!, user.id) : '';
 
@@ -56,7 +56,7 @@ const PurchaseSuccessPage: React.FC = () => {
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               Chi tiết đơn hàng
             </h2>
-            
+
             <div className="space-y-3 mb-6">
               <div className="flex justify-between">
                 <span className="text-gray-600">Mã đơn hàng:</span>
@@ -95,7 +95,7 @@ const PurchaseSuccessPage: React.FC = () => {
               <MessageCircle className="w-5 h-5 mr-2 text-primary-600" />
               Bước tiếp theo
             </h2>
-            
+
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
                 <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1">
@@ -108,7 +108,7 @@ const PurchaseSuccessPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-3">
                 <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1">
                   2
@@ -120,7 +120,7 @@ const PurchaseSuccessPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-3">
                 <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1">
                   3
@@ -140,7 +140,7 @@ const PurchaseSuccessPage: React.FC = () => {
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               Liên hệ tư vấn viên
             </h2>
-            
+
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
               <div className="flex items-center space-x-2 mb-2">
                 <MessageCircle className="w-5 h-5 text-green-600" />
@@ -149,7 +149,7 @@ const PurchaseSuccessPage: React.FC = () => {
               <p className="text-green-700 text-sm mb-3">
                 Click vào nút bên dưới để mở Zalo và bắt đầu cuộc trò chuyện với chuyên gia của chúng tôi.
               </p>
-              
+
               <div className="flex space-x-3">
                 <a
                   href={zaloLink}
@@ -187,7 +187,7 @@ const PurchaseSuccessPage: React.FC = () => {
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               Lưu ý quan trọng
             </h2>
-            
+
             <div className="space-y-3 text-sm">
               <div className="flex items-start space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
@@ -226,7 +226,7 @@ const PurchaseSuccessPage: React.FC = () => {
             </Link>
             <Link
               to={`/package/${packageId}`}
-              className="flex-1 text-center border border-primary-600 text-primary-600 py-2 px-4 rounded-lg hover:bg-primary-50 transition-colors"
+              className="flex-1 text-center btn-secondary"
             >
               Xem Lại Gói Dịch Vụ
             </Link>

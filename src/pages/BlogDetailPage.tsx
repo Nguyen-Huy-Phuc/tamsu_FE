@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { Calendar, ExternalLink, ArrowLeft, Share2, Heart, Bookmark } from 'lucide-react';
+import { Calendar, ExternalLink, ArrowLeft } from 'lucide-react';
 import { mockBlogs } from '../lib/mockBlogData';
 
 const BlogDetailPage: React.FC = () => {
@@ -64,20 +64,7 @@ const BlogDetailPage: React.FC = () => {
                                 className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-full font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                             >
                                 <ExternalLink className="w-5 h-5" />
-                                Đọc Bài Viết Gốc
-                            </button>
-
-                            <button className="flex items-center gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 border border-white/30">
-                                <Share2 className="w-5 h-5" />
-                                Chia sẻ
-                            </button>
-
-                            <button className="flex items-center gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-3 rounded-full transition-all duration-300 border border-white/30">
-                                <Heart className="w-5 h-5" />
-                            </button>
-
-                            <button className="flex items-center gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-4 py-3 rounded-full transition-all duration-300 border border-white/30">
-                                <Bookmark className="w-5 h-5" />
+                                Đi đến sản phẩm
                             </button>
                         </div>
                     </div>
@@ -158,7 +145,7 @@ const BlogDetailPage: React.FC = () => {
                         className="bg-white text-rose-500 hover:text-rose-600 px-8 py-4 rounded-full font-bold text-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl inline-flex items-center gap-3"
                     >
                         <ExternalLink className="w-6 h-6" />
-                        Đọc Bài Viết Gốc
+                        Đi đến sản phẩm
                     </button>
                 </div>
 

@@ -9,14 +9,10 @@ import {
     Edit3,
     Save,
     X,
-    Shield,
     Clock,
     Heart,
     Award,
     Camera,
-    Settings,
-    Lock,
-    Bell
 } from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
