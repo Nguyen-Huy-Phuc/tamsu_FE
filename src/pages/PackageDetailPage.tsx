@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { mockPackages, mockFeedbacks } from '../lib/mockData';
 import StarRating from '../components/StarRating';
-import { Clock, CheckCircle, MessageSquare, User } from 'lucide-react';
+import { CheckCircle, MessageSquare, User } from 'lucide-react';
 
 const PackageDetailPage: React.FC = () => {
   const { packageId } = useParams<{ packageId: string }>();
