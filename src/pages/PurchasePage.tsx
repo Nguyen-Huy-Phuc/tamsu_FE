@@ -9,7 +9,7 @@ const PurchasePage: React.FC = () => {
   const { packageId } = useParams<{ packageId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('momo');
 
@@ -30,7 +30,7 @@ const PurchasePage: React.FC = () => {
 
     // Simulate payment processing
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     // Navigate to success page
     navigate(`/purchase/success/${packageId}`);
   };
@@ -133,13 +133,13 @@ const PurchasePage: React.FC = () => {
                         className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                       />
                       <label htmlFor="momo" className="ml-3 flex items-center">
-                        <div className="w-8 h-8 bg-pink-500 rounded flex items-center justify-center mr-3">
+                        <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center mr-3">
                           <span className="text-white text-xs font-bold">M</span>
                         </div>
                         <span className="text-gray-900 font-medium">Ví MoMo</span>
                       </label>
                     </div>
-                    
+
                     <div className="flex items-center">
                       <input
                         id="vnpay"
@@ -157,7 +157,7 @@ const PurchasePage: React.FC = () => {
                         <span className="text-gray-900 font-medium">VNPay</span>
                       </label>
                     </div>
-                    
+
                     <div className="flex items-center">
                       <input
                         id="banking"
@@ -284,7 +284,7 @@ const PurchasePage: React.FC = () => {
 
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <p className="text-xs text-gray-500">
-                    Mọi thắc mắc về thanh toán, vui lòng liên hệ hotline: 
+                    Mọi thắc mắc về thanh toán, vui lòng liên hệ hotline:
                     <span className="font-medium"> 1900-xxxx</span>
                   </p>
                 </div>

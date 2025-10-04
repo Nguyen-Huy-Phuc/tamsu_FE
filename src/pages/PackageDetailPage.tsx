@@ -9,7 +9,7 @@ const PackageDetailPage: React.FC = () => {
   const { packageId } = useParams<{ packageId: string }>();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  
+
   const [newFeedback, setNewFeedback] = useState({
     rating: 5,
     comment: ''
@@ -18,7 +18,7 @@ const PackageDetailPage: React.FC = () => {
 
   const packageData = mockPackages.find(pkg => pkg.id === packageId);
   const packageFeedbacks = mockFeedbacks.filter(feedback => feedback.packageId === packageId);
-  
+
   if (!packageData) {
     return (
       <div className="container py-16 text-center">
@@ -36,8 +36,8 @@ const PackageDetailPage: React.FC = () => {
     }
   };
 
-  const averageRating = packageFeedbacks.length > 0 
-    ? packageFeedbacks.reduce((sum, feedback) => sum + feedback.rating, 0) / packageFeedbacks.length 
+  const averageRating = packageFeedbacks.length > 0
+    ? packageFeedbacks.reduce((sum, feedback) => sum + feedback.rating, 0) / packageFeedbacks.length
     : 0;
 
   const submitFeedback = (e: React.FormEvent) => {
@@ -82,26 +82,21 @@ const PackageDetailPage: React.FC = () => {
                     {packageData.name}
                   </h1>
                   <div className="flex items-center space-x-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      packageData.type === 'basic' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${packageData.type === 'basic' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                      }`}>
                       {packageData.type === 'basic' ? 'Gói cơ bản' : 'Gói nâng cao'}
                     </span>
                     <div className="flex items-center space-x-1">
-                    <StarRating rating={averageRating} size="md" />
-                    <span className="text-sm text-gray-600 ml-2">
-                      ({packageFeedbacks.length} đánh giá)
-                    </span>
+                      <StarRating rating={averageRating} size="md" />
+                      <span className="text-sm text-gray-600 ml-2">
+                        ({packageFeedbacks.length} đánh giá)
+                      </span>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-bold text-green-600 mb-1">
                     {packageData.price.toLocaleString('vi-VN')}đ
-                  </div>
-                  <div className="flex items-center text-gray-500">
-                    <Clock className="w-4 h-4 mr-1" />
-                    <span>{packageData.duration} phút</span>
                   </div>
                 </div>
               </div>
@@ -173,7 +168,7 @@ const PackageDetailPage: React.FC = () => {
                       <button type="submit" className="btn-primary">
                         Gửi đánh giá
                       </button>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setShowFeedbackForm(false)}
                         className="btn-secondary"
@@ -224,10 +219,6 @@ const PackageDetailPage: React.FC = () => {
               <div className="text-center mb-6">
                 <div className="text-4xl font-bold text-green-600 mb-2">
                   {packageData.price.toLocaleString('vi-VN')}đ
-                </div>
-                <div className="flex items-center justify-center text-gray-500">
-                  <Clock className="w-4 h-4 mr-1" />
-                  <span>Tư vấn {packageData.duration} phút</span>
                 </div>
               </div>
 

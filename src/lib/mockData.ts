@@ -28,7 +28,7 @@ export const mockPackages: ConsultationPackage[] = [
     type: 'basic',
     description: 'Giải đáp nhanh những thắc mắc cơ bản về sức khỏe sinh sản & tình dục an toàn.',
     features: [
-      'Tư vấn trực tuyến 1–1 với chuyên viên trong 10 phút',
+      'Tư vấn trực tuyến 1–1 với chuyên viên',
       'Hỗ trợ xử lý các vấn đề phổ biến',
       'Biện pháp tránh thai cơ bản',
       'Dấu hiệu sức khỏe thường gặp',
@@ -44,7 +44,7 @@ export const mockPackages: ConsultationPackage[] = [
     type: 'advanced',
     description: 'Kiến thức sâu hơn – Giải pháp toàn diện với bác sĩ và chuyên gia tâm lý.',
     features: [
-      'Tư vấn trực tuyến 1–1 với bác sĩ và chuyên gia tâm lý trong 20 phút',
+      'Tư vấn trực tuyến 1–1 với bác sĩ và chuyên gia tâm lý',
       'Các bệnh lý phụ khoa, nam khoa hoặc tình dục thường gặp',
       'Các vấn đề tâm lý liên quan đến tình dục, tình cảm, mối quan hệ',
       'Định hướng hành vi an toàn và phòng ngừa rủi ro lâu dài',
@@ -98,7 +98,7 @@ export const mockFeedbacks: Feedback[] = [
     userName: 'Em Quỳnh',
     packageId: 'basic',
     rating: 4,
-    comment: 'Dịch vụ ổn, tư vấn viên dễ thương. Thời gian 10 phút hơi ngắn nhưng đủ cho nhu cầu cơ bản.',
+    comment: 'Dịch vụ ổn, tư vấn viên dễ thương.',
     createdAt: '2024-03-20T13:10:00Z',
   }
 ];

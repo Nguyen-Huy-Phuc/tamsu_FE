@@ -122,7 +122,7 @@ const Login: React.FC = () => {
           margin: 0,
           padding: 0,
           zIndex: 9999,
-          background: 'linear-gradient(135deg, rgb(244, 63, 94) 0%, rgb(251, 113, 133) 50%, rgb(252, 165, 165) 100%)',
+          background: 'linear-gradient(135deg, rgb(59, 130, 246) 0%, rgb(147, 197, 253) 50%, rgb(191, 219, 254) 100%)',
           overflow: 'hidden',
           fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           boxSizing: 'border-box'

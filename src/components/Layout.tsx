@@ -1,78 +1,112 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Heart, Sparkles } from 'lucide-react';
 import UserProfileDropdown from './UserProfileDropdown';
 
 const Layout: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100">
-      {/* Modern Header with glassmorphism */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 border-b border-white/30 shadow-lg">
-        <div className="container mx-auto px-6 flex items-center justify-between py-5">
-          {/* Modern Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="relative">
-              <div className="w-12 h-12 bg-gradient-to-br from-rose-400 via-pink-400 to-rose-500 rounded-2xl flex items-center justify-center transform group-hover:scale-110 transition-all duration-300 shadow-glow">
-                <Heart className="w-7 h-7 text-white" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-rose-300 to-pink-400 rounded-full flex items-center justify-center">
-                <Sparkles className="w-2 h-2 text-white" />
-              </div>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold gradient-text">TamSu Health</h1>
-              <p className="text-sm text-gray-500 font-medium">Chăm sóc sức khỏe tâm lý</p>
-            </div>
-          </Link>          {/* Modern Navigation */}
-          <nav className="hidden lg:flex items-center space-x-10">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-pink-50 to-blue-100">
+      {/* Clean Header */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <div className="container mx-auto px-6 flex items-center justify-between py-4">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
+            <img
+              src="/logo_tamsu.png"
+              alt="TamSu Logo"
+              className="w-20 h-20 object-contain"
+            />
+          </Link>
+
+          {/* Navigation */}
+          <nav className="hidden lg:flex items-center space-x-8">
             <Link
               to="/"
-              className="text-gray-700 hover:text-rose-600 font-semibold text-lg transition-all duration-300 relative group px-3 py-2"
+              className="text-gray-600 hover:text-blue-600 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-blue-50"
             >
               Home
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-rose-500 to-pink-500 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </Link>
             <Link
               to="/blog"
-              className="text-gray-700 hover:text-rose-600 font-semibold text-lg transition-all duration-300 relative group px-3 py-2"
+              className="text-gray-600 hover:text-blue-600 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-blue-50"
             >
               Blog
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-rose-500 to-pink-500 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </Link>
-          </nav>          {/* Modern User Actions */}
-          <div className="flex items-center space-x-6">
+            <Link
+              to="/consultation"
+              className="text-gray-600 hover:text-blue-600 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-blue-50"
+            >
+              Tư vấn
+            </Link>
+            <Link
+              to="/products"
+              className="text-gray-600 hover:text-blue-600 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-blue-50"
+            >
+              Sản Phẩm
+            </Link>
+          </nav>
+
+          {/* Right Side */}
+          <div className="flex items-center space-x-4">
+            {/* Social Icons */}
+            <div className="hidden lg:flex items-center space-x-3">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+              </a>
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+              </a>
+              <a
+                href="https://tiktok.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
+                </svg>
+              </a>
+            </div>
+
+            {/* User Actions */}
             {isAuthenticated ? (
               <UserProfileDropdown />
             ) : (
-              <div className="flex items-center" style={{ gap: '10px' }}>
-                {/* Sign in to console Button - Simple Style */}
-                <Link
-                  to="/login"
-                  className="px-6 py-3 text-gray-600 hover:text-gray-800 font-semibold text-base transition-colors duration-200 rounded-lg hover:bg-gray-50"
-                >
-                  Sign in
-                </Link>
-
-                {/* Create account Button - Brand Color Style */}
-                <Link
-                  to="/register"
-                  className="px-8 py-3 bg-gradient-to-r from-rose-400 via-pink-400 to-rose-500 hover:from-rose-500 hover:via-pink-500 hover:to-rose-600 text-white font-semibold text-base rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
-                >
-                  Create account
-                </Link>
-              </div>
+              <Link
+                to="/register"
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-full transition-colors duration-200"
+              >
+                Sign Up
+              </Link>
             )}
-          </div>          {/* Mobile menu button */}
-          <button className="lg:hidden p-3 rounded-2xl hover:bg-white/30 transition-colors shadow-md backdrop-blur-sm">
-            <div className="w-6 h-6 flex flex-col justify-center items-center space-y-1.5">
-              <span className="w-6 h-0.5 bg-gray-700 rounded-full transform transition-all"></span>
-              <span className="w-6 h-0.5 bg-gray-700 rounded-full transform transition-all"></span>
-              <span className="w-6 h-0.5 bg-gray-700 rounded-full transform transition-all"></span>
-            </div>
-          </button>
+
+            {/* Mobile menu button */}
+            <button className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <div className="w-6 h-6 flex flex-col justify-center items-center space-y-1">
+                <span className="w-5 h-0.5 bg-gray-600 rounded-full"></span>
+                <span className="w-5 h-0.5 bg-gray-600 rounded-full"></span>
+                <span className="w-5 h-0.5 bg-gray-600 rounded-full"></span>
+              </div>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -86,11 +120,12 @@ const Layout: React.FC = () => {
         <div className="relative container mx-auto px-6 py-20">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-rose-400 via-pink-400 to-rose-500 rounded-2xl flex items-center justify-center shadow-glow">
-                  <Heart className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold gradient-text">TamSu Health</h3>
+              <div className="flex items-center mb-6">
+                <img
+                  src="/logo_tamsu.png"
+                  alt="TamSu Logo"
+                  className="w-20 h-20 object-contain"
+                />
               </div>
               <p className="text-gray-600 mb-6 leading-relaxed">
                 Nền tảng tư vấn sức khỏe tâm lý và tình dục trực tuyến uy tín, bảo mật và chuyên nghiệp.
