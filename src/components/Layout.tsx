@@ -24,25 +24,25 @@ const Layout: React.FC = () => {
           <nav className="hidden lg:flex items-center space-x-8">
             <Link
               to="/"
-              className="text-gray-600 hover:text-blue-600 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-blue-50"
+              className="text-gray-600 hover:text-pink-400 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-pink-50"
             >
               Home
             </Link>
             <Link
               to="/blog"
-              className="text-gray-600 hover:text-blue-600 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-blue-50"
+              className="text-gray-600 hover:text-pink-400 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-pink-50"
             >
               Blog
             </Link>
             <Link
               to="/consultation"
-              className="text-gray-600 hover:text-blue-600 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-blue-50"
+              className="text-gray-600 hover:text-pink-400 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-pink-50"
             >
               Tư vấn
             </Link>
             <Link
               to="/products"
-              className="text-gray-600 hover:text-blue-600 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-blue-50"
+              className="text-gray-600 hover:text-pink-400 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-pink-50"
             >
               Sản Phẩm
             </Link>

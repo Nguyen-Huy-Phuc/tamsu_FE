@@ -51,7 +51,7 @@ const BlogListPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-pink-50 to-blue-100">
             {/* Hero Section */}
-            <div className="bg-gradient-to-r from-blue-400 via-pink-400 to-blue-500 text-white">
+            <div className="bg-gradient-to-br from-blue-300 via-pink-300 to-blue-400 text-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
                     <div className="text-center">
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6">
@@ -120,7 +120,7 @@ const BlogListPage: React.FC = () => {
                                 <Link
                                     key={blog.id}
                                     to={`/blog/${blog.id}`}
-                                    className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-rose-100 hover:border-rose-200 hover:scale-105"
+                                    className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-rose-100 hover:border-rose-200 hover:scale-105 hover:bg-rose-50"
                                 >
                                     {/* Blog Image */}
                                     <div className="relative overflow-hidden">
@@ -130,21 +130,21 @@ const BlogListPage: React.FC = () => {
                                             className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-blue-50">
-                                            <ExternalLink className="w-4 h-4 text-blue-500" />
+                                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-rose-50">
+                                            <ExternalLink className="w-4 h-4 text-pink-300" />
                                         </div>
                                     </div>
 
                                     {/* Blog Content */}
                                     <div className="p-6">
                                         {/* Date */}
-                                        <div className="flex items-center gap-2 text-blue-500 text-sm font-medium mb-3">
+                                        <div className="flex items-center gap-2 text-pink-300 text-sm font-medium mb-3">
                                             <Calendar className="w-4 h-4" />
                                             {formatDate(blog.createdAt)}
                                         </div>
 
                                         {/* Title */}
-                                        <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                        <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-pink-400 transition-colors">
                                             {blog.title}
                                         </h3>
 
@@ -155,10 +155,10 @@ const BlogListPage: React.FC = () => {
 
                                         {/* Read More Button */}
                                         <div className="flex items-center justify-between">
-                                            <span className="text-blue-500 font-semibold group-hover:text-blue-600 transition-colors">
+                                            <span className="text-pink-300 font-semibold group-hover:text-pink-400 transition-colors">
                                                 Đọc thêm →
                                             </span>
-                                            <div className="w-8 h-1 bg-blue-200 rounded-full group-hover:bg-blue-400 transition-colors" />
+                                            <div className="w-8 h-1 bg-pink-100 rounded-full group-hover:bg-pink-200 transition-colors" />
                                         </div>
                                     </div>
                                 </Link>
@@ -181,8 +181,8 @@ const BlogListPage: React.FC = () => {
                                         key={page}
                                         onClick={() => handlePageChange(page)}
                                         className={`w-10 h-10 rounded-full font-semibold transition-all duration-200 ${currentPage === page
-                                            ? 'bg-purple-500 text-white shadow-lg'
-                                            : 'border border-purple-200 text-purple-600 hover:bg-purple-50'
+                                            ? 'bg-pink-400 text-white shadow-lg'
+                                            : 'border border-pink-200 text-pink-600 hover:bg-pink-50'
                                             }`}
                                     >
                                         {page}
