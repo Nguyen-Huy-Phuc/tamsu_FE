@@ -1,24 +1,5 @@
 import type { User, ConsultationPackage, Feedback } from '../types';
 
-export const mockUsers: User[] = [
-  {
-    id: '1',
-    username: 'demo_user',
-    email: 'demo@gmail.com',
-    phone: '0123456789',
-    password: 'demo123',
-    createdAt: '2024-01-15T10:00:00Z',
-  },
-  {
-    id: '2',
-    username: 'testuser',
-    email: 'test@gmail.com',
-    phone: '0987654321',
-    password: 'test123',
-    createdAt: '2024-02-01T14:30:00Z',
-  }
-];
-
 export const mockPackages: ConsultationPackage[] = [
   {
     id: 'basic',

@@ -134,7 +134,7 @@ const UserProfileDropdown: React.FC = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
-    if (!user) return null;
+    if (!user || !user.fullName) return null;
 
     const handleLogout = () => {
         logout();
@@ -142,8 +142,11 @@ const UserProfileDropdown: React.FC = () => {
     };
 
     // Get user initials
-    const getInitials = (username: string) => {
-        return username.substring(0, 2).toUpperCase();
+    const getInitials = (name?: string) => {
+        if (!name || name.trim().length === 0) return 'U';
+        const trimmedName = name.trim();
+        if (trimmedName.length === 1) return trimmedName.toUpperCase();
+        return trimmedName.substring(0, 2).toUpperCase();
     };
 
     return (
@@ -151,14 +154,14 @@ const UserProfileDropdown: React.FC = () => {
             trigger={
                 <button className="flex items-center space-x-3 p-2 rounded-xl hover:bg-rose-100/30 backdrop-blur-sm transition-all duration-300 border border-rose-200/30">
                     <div className="w-8 h-8 bg-gradient-to-br from-rose-400 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-lg">
-                        {getInitials(user.username)}
+                        {getInitials(user?.fullName)}
                     </div>
                     <div className="text-left hidden sm:block">
                         <div className="text-sm font-medium text-gray-700">
-                            {user.username}
+                            {user?.fullName || 'User'}
                         </div>
                         <div className="text-xs text-gray-500">
-                            {user.email}
+                            {user?.role || 'Member'}
                         </div>
                     </div>
                 </button>
@@ -169,16 +172,16 @@ const UserProfileDropdown: React.FC = () => {
                 <div className="flex items-center space-x-3">
                     <div className="relative">
                         <div className="w-12 h-12 bg-gradient-to-br from-rose-400 via-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg ring-2 ring-white">
-                            {getInitials(user.username)}
+                            {getInitials(user?.fullName)}
                         </div>
                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
                     <div>
                         <div className="text-sm font-bold text-gray-900">
-                            {user.username}
+                            {user?.fullName || 'User'}
                         </div>
                         <div className="text-xs text-gray-600 bg-white/70 px-2 py-0.5 rounded-full">
-                            {user.email}
+                            {user?.role || 'Member'}
                         </div>
                     </div>
                 </div>

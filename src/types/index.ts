@@ -1,19 +1,23 @@
 export interface User {
-  id: string;
-  username: string;
-  email: string;
-  phone: string;
-  password: string;
-  createdAt: string;
+  id?: string;
+  username?: string;
+  email?: string;
+  fullName: string;
+  birthday?: string;
+  gender?: 'Male' | 'Female';
+  password?: string;
+  role?: string;
+  createdAt?: string;
 }
 
 export interface Blog {
   id: string;
   title: string;
-  description: string;
+  shortDescription: string;
+  content: string | null;
   imageUrl: string;
-  externalLink: string;
   createdAt: string;
+  lastModifiedAt: string | null;
 }
 
 export interface ConsultationPackage {
@@ -47,8 +51,9 @@ export interface Purchase {
 
 export interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<boolean>;
-  register: (userData: Omit<User, 'id' | 'createdAt'>) => Promise<boolean>;
+  login: (usernameOrEmail: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (userData: Omit<User, 'id' | 'createdAt' | 'role'>) => Promise<{ success: boolean; data?: User; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }

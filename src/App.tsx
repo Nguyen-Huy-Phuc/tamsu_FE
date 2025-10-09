@@ -20,12 +20,19 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public routes */}
+          {/* Public routes - only login and register */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Routes with layout */}
-          <Route path="/" element={<Layout />}>
+          {/* All other routes require authentication */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<HomePage />} />
             <Route path="packages" element={<HomePage />} />
             <Route path="package/:packageId" element={<PackageDetailPage />} />
@@ -33,48 +40,13 @@ function App() {
             {/* Blog routes */}
             <Route path="blog" element={<BlogListPage />} />
             <Route path="blog/:id" element={<BlogDetailPage />} />
+            <Route path="blog/create" element={<CreateBlogPage />} />
 
-            {/* Protected routes */}
-            <Route
-              path="profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="purchase-history"
-              element={
-                <ProtectedRoute>
-                  <PurchaseHistoryPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="blog/create"
-              element={
-                <ProtectedRoute>
-                  <CreateBlogPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="package/:packageId/purchase"
-              element={
-                <ProtectedRoute>
-                  <PurchasePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="purchase/success/:packageId"
-              element={
-                <ProtectedRoute>
-                  <PurchaseSuccessPage />
-                </ProtectedRoute>
-              }
-            />
+            {/* User routes */}
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="purchase-history" element={<PurchaseHistoryPage />} />
+            <Route path="package/:packageId/purchase" element={<PurchasePage />} />
+            <Route path="purchase/success/:packageId" element={<PurchaseSuccessPage />} />
           </Route>
 
           {/* 404 page */}

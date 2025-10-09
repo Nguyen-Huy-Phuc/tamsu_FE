@@ -1,11 +1,70 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { Calendar, ExternalLink, ArrowLeft } from 'lucide-react';
-import { mockBlogs } from '../lib/mockBlogData';
+import { Calendar, ArrowLeft } from 'lucide-react';
+import { fetchBlogById, type BlogDetailResponse } from '../services/blogService';
+import LoadingSpinner from '../components/LoadingSpinner';
+import type { Blog } from '../types';
 
 const BlogDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const blog = mockBlogs.find(b => b.id === id);
+    const [blog, setBlog] = useState<Blog | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!id) return;
+
+        const loadBlog = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const response: BlogDetailResponse = await fetchBlogById(id);
+                setBlog(response.data);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tải dữ liệu');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadBlog();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 flex items-center justify-center">
+                <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4 text-center">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-red-600 font-bold text-xl">!</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Có lỗi xảy ra</h3>
+                    <p className="text-gray-600 mb-6">{error}</p>
+                    <div className="flex gap-3 justify-center">
+                        <Link
+                            to="/blog"
+                            className="bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition-colors"
+                        >
+                            Quay lại
+                        </Link>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="bg-rose-600 text-white px-4 py-2 rounded-full hover:bg-rose-700 transition-colors"
+                        >
+                            Thử lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (!blog) {
         return <Navigate to="/blog" replace />;
@@ -20,8 +79,12 @@ const BlogDetailPage: React.FC = () => {
         });
     };
 
-    const handleExternalLink = () => {
-        window.open(blog.externalLink, '_blank', 'noopener,noreferrer');
+    const formatLastModified = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
     };
 
     return (
@@ -32,6 +95,10 @@ const BlogDetailPage: React.FC = () => {
                     src={blog.imageUrl}
                     alt={blog.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://via.placeholder.com/1200x800/f3f4f6/9ca3af?text=Blog+Image';
+                    }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
@@ -52,38 +119,39 @@ const BlogDetailPage: React.FC = () => {
                             {formatDate(blog.createdAt)}
                         </div>
 
+                        {/* Last Modified */}
+                        {blog.lastModifiedAt && (
+                            <div className="flex items-center gap-2 text-rose-300 text-sm font-medium mb-4">
+                                <span>Cập nhật lần cuối: {formatLastModified(blog.lastModifiedAt)}</span>
+                            </div>
+                        )}
+
                         {/* Title */}
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight">
                             {blog.title}
                         </h1>
 
-                        {/* Action Buttons */}
-                        <div className="flex flex-wrap gap-4">
-                            <button
-                                onClick={handleExternalLink}
-                                className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-full font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-                            >
-                                <ExternalLink className="w-5 h-5" />
-                                Đi đến sản phẩm
-                            </button>
-                        </div>
+                        {/* Short Description */}
+                        <p className="text-xl md:text-2xl text-rose-100 mb-6 max-w-3xl">
+                            {blog.shortDescription}
+                        </p>
                     </div>
                 </div>
             </div>
 
             {/* Content Section */}
             <div className="max-w-4xl mx-auto px-6 md:px-8 py-12">
-                {/* Description Card */}
+                {/* Main Content */}
                 <div className="bg-white rounded-3xl shadow-xl border border-rose-100 p-8 md:p-12 mb-8">
                     <div className="prose prose-lg max-w-none">
                         <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-                            Tóm tắt nội dung
+                            Nội dung bài viết
                         </h2>
                         <div className="w-24 h-1 bg-gradient-to-r from-rose-400 to-pink-400 rounded-full mx-auto mb-8" />
 
-                        <p className="text-xl leading-relaxed text-gray-700 text-center mb-8">
-                            {blog.description}
-                        </p>
+                        <div className="text-lg leading-relaxed text-gray-700 whitespace-pre-line">
+                            {blog.content || 'Nội dung đang được cập nhật...'}
+                        </div>
 
                         {/* Key Points */}
                         <div className="grid md:grid-cols-2 gap-6 mt-12">
@@ -132,58 +200,15 @@ const BlogDetailPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* CTA Section */}
-                <div className="bg-gradient-to-r from-rose-400 via-pink-400 to-rose-500 rounded-3xl p-8 md:p-12 text-center text-white shadow-xl">
-                    <h3 className="text-3xl font-bold mb-4">
-                        Sẵn sàng khám phá thêm?
-                    </h3>
-                    <p className="text-xl text-rose-100 mb-8 max-w-2xl mx-auto">
-                        Nhấn vào nút bên dưới để đọc bài viết đầy đủ và chi tiết từ nguồn gốc
-                    </p>
-                    <button
-                        onClick={handleExternalLink}
-                        className="bg-white text-rose-500 hover:text-rose-600 px-8 py-4 rounded-full font-bold text-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl inline-flex items-center gap-3"
+                {/* Back to Blog List */}
+                <div className="text-center">
+                    <Link
+                        to="/blog"
+                        className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-400 via-pink-400 to-rose-500 text-white px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
                     >
-                        <ExternalLink className="w-6 h-6" />
-                        Đi đến sản phẩm
-                    </button>
-                </div>
-
-                {/* Related Articles */}
-                <div className="mt-12">
-                    <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                        Bài viết liên quan
-                    </h3>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {mockBlogs
-                            .filter(b => b.id !== blog.id)
-                            .slice(0, 3)
-                            .map((relatedBlog) => (
-                                <Link
-                                    key={relatedBlog.id}
-                                    to={`/blog/${relatedBlog.id}`}
-                                    className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-rose-100 hover:border-rose-200 hover:scale-105"
-                                >
-                                    <img
-                                        src={relatedBlog.imageUrl}
-                                        alt={relatedBlog.title}
-                                        className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                                    />
-                                    <div className="p-6">
-                                        <div className="flex items-center gap-2 text-rose-500 text-sm font-medium mb-3">
-                                            <Calendar className="w-4 h-4" />
-                                            {formatDate(relatedBlog.createdAt)}
-                                        </div>
-                                        <h4 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-rose-600 transition-colors">
-                                            {relatedBlog.title}
-                                        </h4>
-                                        <p className="text-gray-600 line-clamp-2 text-sm">
-                                            {relatedBlog.description}
-                                        </p>
-                                    </div>
-                                </Link>
-                            ))}
-                    </div>
+                        <ArrowLeft className="w-5 h-5" />
+                        Quay lại danh sách blog
+                    </Link>
                 </div>
             </div>
         </div>

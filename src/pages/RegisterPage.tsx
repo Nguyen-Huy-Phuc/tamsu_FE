@@ -1,26 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { User, Lock, Eye, EyeOff, AlertCircle, Mail, Phone } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { User, Lock, Eye, EyeOff, AlertCircle, Mail } from 'lucide-react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { useAuth } from '../context/AuthContext';
 
 interface RegisterFormData {
   username: string;
   email: string;
-  phone: string;
+  fullName: string;
+  birthday: string;
+  gender: 'Male' | 'Female';
   password: string;
 }
 
 const Register: React.FC = () => {
-  const [formData, setFormData] = useState<RegisterFormData>({
-    username: '',
-    email: '',
-    phone: '',
-    password: ''
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<RegisterFormData>();
+
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const [apiError, setApiError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const { register: registerUser } = useAuth();
+
+  // Get the page user was trying to access before being redirected to login
+  const from = (location.state as any)?.from?.pathname || '/';
 
   // Completely isolate Register page from global styles
   useEffect(() => {
@@ -68,78 +76,23 @@ const Register: React.FC = () => {
     };
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const validateForm = (): boolean => {
-    if (!formData.username.trim()) {
-      setError('Username là bắt buộc');
-      return false;
-    }
-    if (!formData.email.trim()) {
-      setError('Email là bắt buộc');
-      return false;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError('Email không hợp lệ');
-      return false;
-    }
-    if (!formData.phone.trim()) {
-      setError('Số điện thoại là bắt buộc');
-      return false;
-    }
-    if (!/^\d{10,11}$/.test(formData.phone.replace(/\s/g, ''))) {
-      setError('Số điện thoại không hợp lệ');
-      return false;
-    }
-    if (!formData.password.trim()) {
-      setError('Password là bắt buộc');
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError('Password phải có ít nhất 6 ký tự');
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    setError('');
+  const onSubmit = async (data: RegisterFormData): Promise<void> => {
+    setApiError('');
     setSuccess('');
 
-    if (!validateForm()) {
-      return;
-    }
-
-    setLoading(true);
-
     try {
-      // Simulate registration API call
-      const success = await new Promise<boolean>((resolve) => {
-        setTimeout(() => {
-          // Simulate success for demo
-          resolve(true);
-        }, 1500);
-      });
+      const result = await registerUser(data);
 
-      if (success) {
-        setSuccess('Đăng ký thành công! Chuyển hướng đến trang đăng nhập...');
+      if (result.success) {
+        setSuccess('Đăng ký thành công! Chuyển hướng đến trang chủ...');
         setTimeout(() => {
-          navigate('/login');
+          navigate(from);
         }, 2000);
       } else {
-        setError('Đăng ký thất bại, vui lòng thử lại');
+        setApiError(result.error || 'Đăng ký thất bại, vui lòng thử lại');
       }
     } catch (err) {
-      setError('Có lỗi xảy ra, vui lòng thử lại');
-    } finally {
-      setLoading(false);
+      setApiError('Có lỗi xảy ra, vui lòng thử lại');
     }
   };
 
@@ -303,12 +256,12 @@ const Register: React.FC = () => {
                   margin: '0 0 32px 0'
                 }}
               >
-                Register
+                Đăng ký
               </h1>
 
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Error Message */}
-                {error && (
+                {apiError && (
                   <div
                     style={{
                       display: 'flex',
@@ -323,7 +276,7 @@ const Register: React.FC = () => {
                     }}
                   >
                     <AlertCircle size={20} />
-                    {error}
+                    {apiError}
                   </div>
                 )}
 
@@ -351,16 +304,24 @@ const Register: React.FC = () => {
                 <div style={{ position: 'relative' }}>
                   <input
                     type="text"
-                    name="username"
-                    placeholder="Username"
-                    value={formData.username}
-                    onChange={handleInputChange}
+                    placeholder="Tên đăng nhập"
+                    {...register('username', {
+                      required: 'Tên đăng nhập là bắt buộc',
+                      minLength: {
+                        value: 3,
+                        message: 'Tên đăng nhập phải có ít nhất 3 ký tự'
+                      },
+                      pattern: {
+                        value: /^[a-zA-Z0-9_]+$/,
+                        message: 'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới'
+                      }
+                    })}
                     style={{
                       width: '100%',
                       background: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
                       WebkitBackdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      border: errors.username ? '2px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
                       borderRadius: '9999px',
                       padding: '18px 48px 18px 16px',
                       color: 'white',
@@ -371,12 +332,16 @@ const Register: React.FC = () => {
                       boxSizing: 'border-box'
                     }}
                     onFocus={(e) => {
-                      e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      if (!errors.username) {
+                        e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      }
                     }}
                     onBlur={(e) => {
-                      e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-                      e.target.style.boxShadow = 'none';
+                      if (!errors.username) {
+                        e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                        e.target.style.boxShadow = 'none';
+                      }
                     }}
                   />
                   <div
@@ -392,22 +357,31 @@ const Register: React.FC = () => {
                   >
                     <User size={20} />
                   </div>
+                  {errors.username && (
+                    <p style={{ color: 'rgb(252, 165, 165)', fontSize: '12px', margin: '4px 0 0 16px' }}>
+                      {errors.username.message}
+                    </p>
+                  )}
                 </div>
 
-                {/* Email field */}
+                {/* Full Name field */}
                 <div style={{ position: 'relative' }}>
                   <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={handleInputChange}
+                    type="text"
+                    placeholder="Họ và tên"
+                    {...register('fullName', {
+                      required: 'Họ và tên là bắt buộc',
+                      minLength: {
+                        value: 2,
+                        message: 'Họ và tên phải có ít nhất 2 ký tự'
+                      }
+                    })}
                     style={{
                       width: '100%',
                       background: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
                       WebkitBackdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      border: errors.fullName ? '2px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
                       borderRadius: '9999px',
                       padding: '18px 48px 18px 16px',
                       color: 'white',
@@ -418,12 +392,76 @@ const Register: React.FC = () => {
                       boxSizing: 'border-box'
                     }}
                     onFocus={(e) => {
-                      e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      if (!errors.fullName) {
+                        e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      }
                     }}
                     onBlur={(e) => {
-                      e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-                      e.target.style.boxShadow = 'none';
+                      if (!errors.fullName) {
+                        e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                        e.target.style.boxShadow = 'none';
+                      }
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: '16px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'white',
+                      opacity: 0.7,
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    <User size={20} />
+                  </div>
+                  {errors.fullName && (
+                    <p style={{ color: 'rgb(252, 165, 165)', fontSize: '12px', margin: '4px 0 0 16px' }}>
+                      {errors.fullName.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Email field */}
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    {...register('email', {
+                      required: 'Email là bắt buộc',
+                      pattern: {
+                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        message: 'Email không hợp lệ'
+                      }
+                    })}
+                    style={{
+                      width: '100%',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)',
+                      border: errors.email ? '2px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '9999px',
+                      padding: '18px 48px 18px 16px',
+                      color: 'white',
+                      fontSize: '16px',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      margin: 0,
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => {
+                      if (!errors.email) {
+                        e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (!errors.email) {
+                        e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                        e.target.style.boxShadow = 'none';
+                      }
                     }}
                   />
                   <div
@@ -439,24 +477,41 @@ const Register: React.FC = () => {
                   >
                     <Mail size={20} />
                   </div>
+                  {errors.email && (
+                    <p style={{ color: 'rgb(252, 165, 165)', fontSize: '12px', margin: '4px 0 0 16px' }}>
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
 
-                {/* Phone field */}
+                {/* Birthday field */}
                 <div style={{ position: 'relative' }}>
                   <input
-                    type="tel"
-                    name="phone"
-                    placeholder="Phone Number"
-                    value={formData.phone}
-                    onChange={handleInputChange}
+                    type="date"
+                    {...register('birthday', {
+                      required: 'Ngày sinh là bắt buộc',
+                      validate: {
+                        notFuture: (value) => {
+                          const today = new Date();
+                          const inputDate = new Date(value);
+                          return inputDate <= today || 'Ngày sinh không thể là ngày trong tương lai';
+                        },
+                        minimumAge: (value) => {
+                          const today = new Date();
+                          const inputDate = new Date(value);
+                          const age = today.getFullYear() - inputDate.getFullYear();
+                          return age >= 13 || 'Bạn phải ít nhất 13 tuổi';
+                        }
+                      }
+                    })}
                     style={{
                       width: '100%',
                       background: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
                       WebkitBackdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      border: errors.birthday ? '2px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
                       borderRadius: '9999px',
-                      padding: '18px 48px 18px 16px',
+                      padding: '18px 16px',
                       color: 'white',
                       fontSize: '16px',
                       outline: 'none',
@@ -465,43 +520,92 @@ const Register: React.FC = () => {
                       boxSizing: 'border-box'
                     }}
                     onFocus={(e) => {
-                      e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      if (!errors.birthday) {
+                        e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      }
                     }}
                     onBlur={(e) => {
-                      e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-                      e.target.style.boxShadow = 'none';
+                      if (!errors.birthday) {
+                        e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                        e.target.style.boxShadow = 'none';
+                      }
                     }}
                   />
-                  <div
+                  {errors.birthday && (
+                    <p style={{ color: 'rgb(252, 165, 165)', fontSize: '12px', margin: '4px 0 0 16px' }}>
+                      {errors.birthday.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Gender field */}
+                <div style={{ position: 'relative' }}>
+                  <select
+                    {...register('gender', {
+                      required: 'Giới tính là bắt buộc'
+                    })}
                     style={{
-                      position: 'absolute',
-                      right: '16px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
+                      width: '100%',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)',
+                      border: errors.gender ? '2px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '9999px',
+                      padding: '18px 16px',
                       color: 'white',
-                      opacity: 0.7,
-                      pointerEvents: 'none'
+                      fontSize: '16px',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      margin: 0,
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => {
+                      if (!errors.gender) {
+                        e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (!errors.gender) {
+                        e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                        e.target.style.boxShadow = 'none';
+                      }
                     }}
                   >
-                    <Phone size={20} />
-                  </div>
+                    <option value="" style={{ color: 'black' }}>Chọn giới tính</option>
+                    <option value="Male" style={{ color: 'black' }}>Nam</option>
+                    <option value="Female" style={{ color: 'black' }}>Nữ</option>
+                  </select>
+                  {errors.gender && (
+                    <p style={{ color: 'rgb(252, 165, 165)', fontSize: '12px', margin: '4px 0 0 16px' }}>
+                      {errors.gender.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Password field */}
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleInputChange}
+                    placeholder="Mật khẩu"
+                    {...register('password', {
+                      required: 'Mật khẩu là bắt buộc',
+                      minLength: {
+                        value: 6,
+                        message: 'Mật khẩu phải có ít nhất 6 ký tự'
+                      },
+                      pattern: {
+                        value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                        message: 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số'
+                      }
+                    })}
                     style={{
                       width: '100%',
                       background: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
                       WebkitBackdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      border: errors.password ? '2px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
                       borderRadius: '9999px',
                       padding: '18px 80px 18px 16px',
                       color: 'white',
@@ -512,12 +616,16 @@ const Register: React.FC = () => {
                       boxSizing: 'border-box'
                     }}
                     onFocus={(e) => {
-                      e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      if (!errors.password) {
+                        e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      }
                     }}
                     onBlur={(e) => {
-                      e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-                      e.target.style.boxShadow = 'none';
+                      if (!errors.password) {
+                        e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                        e.target.style.boxShadow = 'none';
+                      }
                     }}
                   />
                   <button
@@ -554,15 +662,20 @@ const Register: React.FC = () => {
                   >
                     <Lock size={20} />
                   </div>
+                  {errors.password && (
+                    <p style={{ color: 'rgb(252, 165, 165)', fontSize: '12px', margin: '4px 0 0 16px' }}>
+                      {errors.password.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Register button */}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={isSubmitting}
                   style={{
                     width: '100%',
-                    background: loading ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.9)',
+                    background: isSubmitting ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.9)',
                     backdropFilter: 'blur(10px)',
                     WebkitBackdropFilter: 'blur(10px)',
                     color: '#1f2937',
@@ -570,13 +683,13 @@ const Register: React.FC = () => {
                     padding: '16px',
                     borderRadius: '9999px',
                     border: 'none',
-                    cursor: loading ? 'not-allowed' : 'pointer',
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
                     fontSize: '16px',
                     transition: 'all 0.3s ease',
                     transform: 'scale(1)',
                     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
                     margin: 0,
-                    opacity: loading ? 0.7 : 1,
+                    opacity: isSubmitting ? 0.7 : 1,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -584,21 +697,21 @@ const Register: React.FC = () => {
                     marginTop: '8px'
                   }}
                   onMouseEnter={(e) => {
-                    if (!loading) {
+                    if (!isSubmitting) {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
                       e.currentTarget.style.transform = 'scale(1.05)';
                       e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.15)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!loading) {
+                    if (!isSubmitting) {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
                       e.currentTarget.style.transform = 'scale(1)';
                       e.currentTarget.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1)';
                     }
                   }}
                 >
-                  {loading ? (
+                  {isSubmitting ? (
                     <>
                       <div
                         style={{
@@ -613,7 +726,7 @@ const Register: React.FC = () => {
                       Đang đăng ký...
                     </>
                   ) : (
-                    'Register'
+                    'Đăng ký'
                   )}
                 </button>
 
@@ -626,7 +739,7 @@ const Register: React.FC = () => {
                     fontSize: '16px'
                   }}
                 >
-                  Already have an account?{' '}
+                  Bạn đã có tài khoản?{' '}
                   <Link
                     to="/login"
                     style={{
@@ -644,7 +757,7 @@ const Register: React.FC = () => {
                       e.currentTarget.style.opacity = '1';
                     }}
                   >
-                    Login
+                    Đăng nhập
                   </Link>
                 </p>
               </form>

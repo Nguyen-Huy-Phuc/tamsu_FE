@@ -91,10 +91,10 @@ const Layout: React.FC = () => {
               <UserProfileDropdown />
             ) : (
               <Link
-                to="/register"
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-full transition-colors duration-200"
+                to="/login"
+                className="px-6 py-2 bg-pink-400 hover:bg-pink-500 text-white font-medium text-sm rounded-full transition-colors duration-200"
               >
-                Sign Up
+                Đăng nhập
               </Link>
             )}
 

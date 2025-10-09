@@ -1,26 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { useAuth } from '../context/AuthContext';
 
 interface LoginFormData {
-  username: string;
+  usernameOrEmail: string;
   password: string;
-  rememberMe: boolean;
 }
 
 const Login: React.FC = () => {
-  const [formData, setFormData] = useState<LoginFormData>({
-    username: '',
-    password: '',
-    rememberMe: false
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginFormData>();
+
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const [apiError, setApiError] = useState<string>('');
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the page user was trying to access before being redirected to login
+  const from = (location.state as any)?.from?.pathname || '/';
 
   // Completely isolate Login page from global styles
   useEffect(() => {
@@ -68,32 +72,19 @@ const Login: React.FC = () => {
     };
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  const onSubmit = async (data: LoginFormData): Promise<void> => {
+    setApiError('');
 
     try {
-      const success = await login(formData.username, formData.password);
+      const result = await login(data.usernameOrEmail, data.password);
 
-      if (success) {
-        // Navigate to home page on successful login
-        navigate('/', { replace: true });
+      if (result.success) {
+        navigate(from, { replace: true });
       } else {
-        setError('Tên đăng nhập hoặc mật khẩu không đúng');
+        setApiError(result.error || 'Tài khoản hoặc mật khẩu không chính xác');
       }
     } catch (err) {
-      setError('Có lỗi xảy ra, vui lòng thử lại');
-    } finally {
-      setLoading(false);
+      setApiError('Có lỗi xảy ra, vui lòng thử lại');
     }
   };
 
@@ -108,6 +99,10 @@ const Login: React.FC = () => {
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 1; }
         }
       `}</style>
 
@@ -166,7 +161,7 @@ const Login: React.FC = () => {
             left: '128px',
             width: '192px',
             height: '192px',
-            background: 'linear-gradient(135deg, rgb(253, 164, 175) 0%, rgb(244, 114, 182) 100%)',
+            background: 'linear-gradient(135deg, rgb(191, 219, 254) 0%, rgb(59, 130, 246) 100%)',
             borderRadius: '50%',
             opacity: 0.8,
             filter: 'blur(48px)',
@@ -180,7 +175,7 @@ const Login: React.FC = () => {
             right: '80px',
             width: '256px',
             height: '256px',
-            background: 'linear-gradient(135deg, rgb(252, 165, 165) 0%, rgb(253, 164, 175) 100%)',
+            background: 'linear-gradient(135deg, rgb(147, 197, 253) 0%, rgb(191, 219, 254) 100%)',
             borderRadius: '50%',
             opacity: 0.6,
             filter: 'blur(64px)',
@@ -257,62 +252,12 @@ const Login: React.FC = () => {
                   margin: '0 0 32px 0'
                 }}
               >
-                Login
+                Đăng nhập
               </h1>
 
-              {/* Demo Credentials Info */}
-              <div
-                style={{
-                  background: 'rgba(244, 63, 94, 0.1)',
-                  border: '1px solid rgba(244, 63, 94, 0.2)',
-                  borderRadius: '16px',
-                  padding: '16px',
-                  marginBottom: '24px'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    marginBottom: '12px',
-                    color: 'rgb(253, 164, 175)',
-                    fontSize: '14px',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  <User size={16} />
-                  THÔNG TIN DEMO
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      borderRadius: '12px',
-                      padding: '12px',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
-                    }}
-                  >
-                    <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px', margin: '0 0 4px 0', fontWeight: 'bold' }}>USERNAME</p>
-                    <p style={{ color: 'white', fontSize: '14px', margin: 0, fontFamily: 'monospace' }}>demo_user</p>
-                  </div>
-                  <div
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      borderRadius: '12px',
-                      padding: '12px',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
-                    }}
-                  >
-                    <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px', margin: '0 0 4px 0', fontWeight: 'bold' }}>PASSWORD</p>
-                    <p style={{ color: 'white', fontSize: '14px', margin: 0, fontFamily: 'monospace' }}>demo123</p>
-                  </div>
-                </div>
-              </div>
-
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Error Message */}
-                {error && (
+                {apiError && (
                   <div
                     style={{
                       display: 'flex',
@@ -327,23 +272,24 @@ const Login: React.FC = () => {
                     }}
                   >
                     <AlertCircle size={20} />
-                    {error}
+                    {apiError}
                   </div>
                 )}
-                {/* Username field */}
+
+                {/* Username or Email field */}
                 <div style={{ position: 'relative' }}>
                   <input
                     type="text"
-                    name="username"
-                    placeholder="Username"
-                    value={formData.username}
-                    onChange={handleInputChange}
+                    placeholder="Tên đăng nhập"
+                    {...register('usernameOrEmail', {
+                      required: 'Tên đăng nhập là bắt buộc'
+                    })}
                     style={{
                       width: '100%',
                       background: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
                       WebkitBackdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      border: errors.usernameOrEmail ? '2px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
                       borderRadius: '9999px',
                       padding: '20px 48px 20px 16px',
                       color: 'white',
@@ -354,12 +300,16 @@ const Login: React.FC = () => {
                       boxSizing: 'border-box'
                     }}
                     onFocus={(e) => {
-                      e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      if (!errors.usernameOrEmail) {
+                        e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      }
                     }}
                     onBlur={(e) => {
-                      e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-                      e.target.style.boxShadow = 'none';
+                      if (!errors.usernameOrEmail) {
+                        e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                        e.target.style.boxShadow = 'none';
+                      }
                     }}
                   />
                   <div
@@ -375,22 +325,27 @@ const Login: React.FC = () => {
                   >
                     <User size={20} />
                   </div>
+                  {errors.usernameOrEmail && (
+                    <p style={{ color: 'rgb(252, 165, 165)', fontSize: '12px', margin: '4px 0 0 16px' }}>
+                      {errors.usernameOrEmail.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Password field */}
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleInputChange}
+                    placeholder="Mật khẩu"
+                    {...register('password', {
+                      required: 'Mật khẩu là bắt buộc'
+                    })}
                     style={{
                       width: '100%',
                       background: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
                       WebkitBackdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      border: errors.password ? '2px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(255, 255, 255, 0.2)',
                       borderRadius: '9999px',
                       padding: '20px 80px 20px 16px',
                       color: 'white',
@@ -401,12 +356,16 @@ const Login: React.FC = () => {
                       boxSizing: 'border-box'
                     }}
                     onFocus={(e) => {
-                      e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      if (!errors.password) {
+                        e.target.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(255, 255, 255, 0.1)';
+                      }
                     }}
                     onBlur={(e) => {
-                      e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
-                      e.target.style.boxShadow = 'none';
+                      if (!errors.password) {
+                        e.target.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                        e.target.style.boxShadow = 'none';
+                      }
                     }}
                   />
                   <button
@@ -443,104 +402,56 @@ const Login: React.FC = () => {
                   >
                     <Lock size={20} />
                   </div>
-                </div>
-
-                {/* Remember me and Forgot password */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    fontSize: '14px'
-                  }}
-                >
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      color: 'white',
-                      cursor: 'pointer',
-                      gap: '8px'
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      name="rememberMe"
-                      checked={formData.rememberMe}
-                      onChange={handleInputChange}
-                      style={{
-                        width: '16px',
-                        height: '16px',
-                        accentColor: 'white',
-                        backgroundColor: 'transparent',
-                        border: '2px solid rgba(255, 255, 255, 0.5)',
-                        borderRadius: '4px'
-                      }}
-                    />
-                    Remember me
-                  </label>
-                  <button
-                    type="button"
-                    style={{
-                      color: 'white',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      textDecoration: 'none',
-                      opacity: 0.8,
-                      transition: 'opacity 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Forgot password?
-                  </button>
+                  {errors.password && (
+                    <p style={{ color: 'rgb(252, 165, 165)', fontSize: '12px', margin: '4px 0 0 16px' }}>
+                      {errors.password.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Login button */}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={isSubmitting}
                   style={{
                     width: '100%',
-                    background: loading ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.9)',
+                    background: isSubmitting ? 'rgba(255, 255, 255, 0.6)' : 'rgba(255, 255, 255, 0.9)',
                     backdropFilter: 'blur(10px)',
                     WebkitBackdropFilter: 'blur(10px)',
                     color: '#1f2937',
                     fontWeight: 'bold',
-                    padding: '16px',
+                    padding: '18px',
                     borderRadius: '9999px',
                     border: 'none',
-                    cursor: loading ? 'not-allowed' : 'pointer',
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
                     fontSize: '16px',
                     transition: 'all 0.3s ease',
                     transform: 'scale(1)',
                     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
                     margin: 0,
-                    opacity: loading ? 0.7 : 1,
+                    opacity: isSubmitting ? 0.7 : 1,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px'
+                    gap: '8px',
+                    marginTop: '8px'
                   }}
                   onMouseEnter={(e) => {
-                    if (!loading) {
+                    if (!isSubmitting) {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
                       e.currentTarget.style.transform = 'scale(1.05)';
                       e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.15)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!loading) {
+                    if (!isSubmitting) {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
                       e.currentTarget.style.transform = 'scale(1)';
                       e.currentTarget.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1)';
                     }
                   }}
                 >
-                  {loading ? (
+                  {isSubmitting ? (
                     <>
                       <div
                         style={{
@@ -555,7 +466,7 @@ const Login: React.FC = () => {
                       Đang đăng nhập...
                     </>
                   ) : (
-                    'Login'
+                    'Đăng nhập'
                   )}
                 </button>
 
@@ -568,7 +479,7 @@ const Login: React.FC = () => {
                     fontSize: '16px'
                   }}
                 >
-                  Don't have an account?{' '}
+                  Bạn chưa có tài khoản?{' '}
                   <Link
                     to="/register"
                     style={{
@@ -586,7 +497,7 @@ const Login: React.FC = () => {
                       e.currentTarget.style.opacity = '1';
                     }}
                   >
-                    Register
+                    Đăng ký
                   </Link>
                 </p>
               </form>
