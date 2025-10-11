@@ -24,10 +24,33 @@ export interface ConsultationPackage {
   id: string;
   name: string;
   price: number;
-  duration: number; // in minutes
+  duration: string; // API returns string like "20 phút"
   description: string;
-  features: string[];
-  type: 'basic' | 'advanced';
+  createdAt: string | null;
+  lastModifiedAt: string | null;
+  // Computed fields for UI
+  features?: string[]; // Parsed from description
+  type?: 'basic' | 'advanced'; // Determined from name
+  // API response includes reviews
+  reviews?: Review[];
+}
+
+export interface Review {
+  id: string;
+  rating: number; // 1-5
+  comment: string;
+  createdAt: string;
+  lastModifiedAt: string | null;
+  user: {
+    id: string;
+    username: string;
+    fullName: string;
+  };
+}
+
+export interface ReviewSubmission {
+  rating: number;
+  comment: string;
 }
 
 export interface Feedback {

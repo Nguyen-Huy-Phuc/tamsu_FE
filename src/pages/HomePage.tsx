@@ -1,11 +1,81 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { mockPackages } from '../lib/mockData';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { fetchConsultingPackages, processPackageForUI, type PackagesResponse } from '../services/packageService';
+import { createPayment } from '../services/paymentService';
+import { useToast } from '../hooks/useToast';
+import ToastContainer from '../components/ToastContainer';
+import LoadingSpinner from '../components/LoadingSpinner';
 import {
   Users, Shield, Heart, CheckCircle, ArrowRight, Phone, Star, Sparkles, Award
 } from 'lucide-react';
+import type { ConsultationPackage } from '../types';
 
 const HomePage: React.FC = () => {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+  const { toasts, success, error, removeToast } = useToast();
+
+  console.log('🔧 HomePage render - user:', user);
+  console.log('🔧 HomePage render - isAuthenticated:', isAuthenticated);
+  console.log('🔧 HomePage render - token:', localStorage.getItem('token'));
+
+  const [packages, setPackages] = useState<ConsultationPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadPackages = async () => {
+      try {
+        setLoading(true);
+        setLoadingError(null);
+        const response: PackagesResponse = await fetchConsultingPackages(1, 30);
+
+        // Process packages for UI (add features and type)
+        const processedPackages = response.data.data.map(processPackageForUI);
+        setPackages(processedPackages);
+      } catch (err) {
+        setLoadingError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tải dữ liệu');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPackages();
+  }, []);
+
+  const handlePayment = async (packageId: string) => {
+    console.log('🔧 handlePayment called with packageId:', packageId);
+    console.log('🔧 isAuthenticated:', isAuthenticated);
+    console.log('🔧 token in localStorage:', localStorage.getItem('token'));
+
+    if (!isAuthenticated) {
+      console.log('🔧 User not authenticated, redirecting to login');
+      navigate('/login', { state: { from: { pathname: '/' } } });
+      return;
+    }
+
+    try {
+      console.log('🔧 Starting payment process...');
+      setProcessingPayment(packageId);
+      const response = await createPayment(packageId);
+      console.log('🔧 Payment response:', response);
+
+      if (response.data.checkoutUrl) {
+        success('Chuyển hướng đến trang thanh toán...');
+        // Chuyển hướng đến trang thanh toán
+        window.location.href = response.data.checkoutUrl;
+      } else {
+        throw new Error('Không nhận được URL thanh toán');
+      }
+    } catch (err) {
+      console.error('🔧 Payment error:', err);
+      error(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tạo thanh toán');
+    } finally {
+      setProcessingPayment(null);
+    }
+  };
   return (
     <div className="min-h-screen">
       {/* HERO SECTION - Modern Flexbox Layout */}
@@ -161,79 +231,112 @@ const HomePage: React.FC = () => {
           {/* Packages Grid */}
           <div className="w-full flex justify-center">
             <div className="w-full max-w-7xl">
-              <div className="grid md:grid-cols-2 gap-8 md:gap-10 lg:gap-12 place-items-stretch">
-                {mockPackages.map((pkg) => {
-                  const isPremium = pkg.type === 'advanced';
-                  return (
-                    <div key={pkg.id} className="relative w-full h-full group">
-                      {/* Card */}
-                      <div className={`bg-white rounded-3xl p-6 md:p-8 lg:p-10 border-2 transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-3 h-full flex flex-col min-h-[600px] ${isPremium
-                        ? 'border-purple-200 shadow-purple-100/60 shadow-xl'
-                        : 'border-blue-200 shadow-lg hover:shadow-blue-100/60'
-                        }`}>
-
-                        {/* Package Header */}
-                        <div className="text-center mb-6 md:mb-8">
-                          <h3 className="text-2xl md:text-3xl lg:text-4xl font-black text-gray-900 mb-3 md:mb-4">{pkg.name}</h3>
-                          <span className={`inline-block px-3 md:px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold ${isPremium
-                            ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700'
-                            : 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700'
-                            }`}>
-                            {isPremium ? '💎 Gói Premium' : '🎯 Gói Cơ Bản'}
-                          </span>
-                        </div>
-
-                        {/* Pricing */}
-                        <div className={`text-center mb-6 md:mb-8 p-6 md:p-8 rounded-2xl ${isPremium
-                          ? 'bg-gradient-to-br from-purple-50 to-pink-50'
-                          : 'bg-gradient-to-br from-blue-50 to-cyan-50'
+              {loading ? (
+                <div className="flex justify-center items-center py-20">
+                  <LoadingSpinner />
+                </div>
+              ) : loadingError ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-red-600 font-bold text-xl">!</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Có lỗi xảy ra</h3>
+                  <p className="text-gray-600 mb-6">{loadingError}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Thử lại
+                  </button>
+                </div>
+              ) : packages.length === 0 ? (
+                <div className="text-center py-20">
+                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Sparkles className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Chưa có gói tư vấn</h3>
+                  <p className="text-gray-600">
+                    Hiện tại chưa có gói tư vấn nào. Vui lòng quay lại sau!
+                  </p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-8 md:gap-10 lg:gap-12 place-items-stretch">
+                  {packages.map((pkg) => {
+                    const isPremium = pkg.type === 'advanced';
+                    return (
+                      <div key={pkg.id} className="relative w-full h-full group">
+                        {/* Card */}
+                        <div className={`bg-white rounded-3xl p-6 md:p-8 lg:p-10 border-2 transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-3 h-full flex flex-col min-h-[600px] ${isPremium
+                          ? 'border-purple-200 shadow-purple-100/60 shadow-xl'
+                          : 'border-blue-200 shadow-lg hover:shadow-blue-100/60'
                           }`}>
-                          <div className={`text-4xl md:text-5xl lg:text-6xl font-black mb-2 ${isPremium ? 'text-purple-700' : 'text-blue-700'
-                            }`}>
-                            {pkg.price.toLocaleString('vi-VN')}đ
+
+                          {/* Package Header */}
+                          <div className="text-center mb-6 md:mb-8">
+                            <h3 className="text-2xl md:text-3xl lg:text-4xl font-black text-gray-900 mb-3 md:mb-4">{pkg.name}</h3>
+                            <span className={`inline-block px-3 md:px-4 py-1 md:py-2 rounded-full text-xs md:text-sm font-bold ${isPremium
+                              ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700'
+                              : 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700'
+                              }`}>
+                              {isPremium ? '💎 Gói Premium' : '🎯 Gói Cơ Bản'}
+                            </span>
                           </div>
-                          <div className="text-gray-500 font-medium mb-3 md:mb-4 text-sm md:text-base">Thanh toán một lần</div>
-                        </div>
 
-                        <p className="text-gray-600 text-center mb-6 md:mb-8 text-base md:text-lg leading-relaxed">{pkg.description}</p>
-
-                        {/* Features */}
-                        <div className="space-y-3 md:space-y-4 mb-8 md:mb-10 flex-grow">
-                          {pkg.features.slice(0, 4).map((feature, idx) => (
-                            <div key={idx} className="flex items-start group-hover:translate-x-1 transition-transform duration-300">
-                              <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center mr-3 md:mr-4 flex-shrink-0 ${isPremium ? 'bg-purple-100' : 'bg-blue-100'
-                                }`}>
-                                <CheckCircle className={`w-3 h-3 md:w-4 md:h-4 ${isPremium ? 'text-purple-600' : 'text-blue-600'
-                                  }`} />
-                              </div>
-                              <span className="text-gray-700 font-medium text-sm md:text-base">{feature}</span>
+                          {/* Pricing */}
+                          <div className={`text-center mb-6 md:mb-8 p-6 md:p-8 rounded-2xl ${isPremium
+                            ? 'bg-gradient-to-br from-purple-50 to-pink-50'
+                            : 'bg-gradient-to-br from-blue-50 to-cyan-50'
+                            }`}>
+                            <div className={`text-4xl md:text-5xl lg:text-6xl font-black mb-2 ${isPremium ? 'text-purple-700' : 'text-blue-700'
+                              }`}>
+                              {pkg.price.toLocaleString('vi-VN')}đ
                             </div>
-                          ))}
-                        </div>
+                            <div className="text-gray-500 font-medium mb-3 md:mb-4 text-sm md:text-base">Thanh toán một lần</div>
+                          </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex gap-3 md:gap-4 mt-auto">
-                          <Link
-                            to={`/package/${pkg.id}`}
-                            className="flex-1 text-center py-3 md:py-4 border-2 border-gray-200 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300 font-semibold text-base md:text-lg"
-                          >
-                            Chi tiết
-                          </Link>
-                          <Link
-                            to={`/package/${pkg.id}/purchase`}
-                            className={`flex-1 text-center py-3 md:py-4 rounded-xl text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-base md:text-lg ${isPremium
-                              ? 'bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-600 hover:to-pink-600'
-                              : 'bg-gradient-to-r from-blue-400 to-pink-400 hover:from-blue-500 hover:to-pink-500'
-                              }`}
-                          >
-                            🚀 Mua ngay
-                          </Link>
+                          <p className="text-gray-600 text-center mb-6 md:mb-8 text-base md:text-lg leading-relaxed">{pkg.description}</p>
+
+                          {/* Features */}
+                          <div className="space-y-3 md:space-y-4 mb-8 md:mb-10 flex-grow">
+                            {pkg.features?.slice(0, 4).map((feature, idx) => (
+                              <div key={idx} className="flex items-start group-hover:translate-x-1 transition-transform duration-300">
+                                <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center mr-3 md:mr-4 flex-shrink-0 ${isPremium ? 'bg-purple-100' : 'bg-blue-100'
+                                  }`}>
+                                  <CheckCircle className={`w-3 h-3 md:w-4 md:h-4 ${isPremium ? 'text-purple-600' : 'text-blue-600'
+                                    }`} />
+                                </div>
+                                <span className="text-gray-700 font-medium text-sm md:text-base">{feature}</span>
+                              </div>
+                            )) || (
+                                <p className="text-gray-600">Không có thông tin tính năng.</p>
+                              )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-3 md:gap-4 mt-auto">
+                            <Link
+                              to={`/package/${pkg.id}`}
+                              className="flex-1 text-center py-3 md:py-4 border-2 border-gray-200 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-300 font-semibold text-base md:text-lg"
+                            >
+                              Chi tiết
+                            </Link>
+                            <button
+                              onClick={() => handlePayment(pkg.id)}
+                              disabled={processingPayment === pkg.id}
+                              className={`flex-1 py-3 md:py-4 rounded-xl text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-base md:text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${isPremium
+                                ? 'bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-600 hover:to-pink-600'
+                                : 'bg-gradient-to-r from-blue-400 to-pink-400 hover:from-blue-500 hover:to-pink-500'
+                                }`}
+                            >
+                              {processingPayment === pkg.id ? '⏳ Đang xử lý...' : '� Thanh toán'}
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -313,6 +416,9 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 };

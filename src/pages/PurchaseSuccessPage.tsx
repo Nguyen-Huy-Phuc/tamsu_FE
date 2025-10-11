@@ -1,22 +1,114 @@
-import React, { useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { mockPackages, generateZaloLink } from '../lib/mockData';
+import { getOrderByCode, generateZaloLink, formatTransactionStatus, type OrderDetails } from '../services/transactionService';
+import { fetchPackageById, processPackageForUI } from '../services/packageService';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { CheckCircle, MessageCircle, Clock, Phone, Copy } from 'lucide-react';
+import type { ConsultationPackage } from '../types';
 
 const PurchaseSuccessPage: React.FC = () => {
+  console.log('🔧 PurchaseSuccessPage render');
+
   const { packageId } = useParams<{ packageId: string }>();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
 
-  const packageData = mockPackages.find(pkg => pkg.id === packageId);
-  const zaloLink = packageData && user ? generateZaloLink(packageId!, user.id) : '';
+  console.log('🔧 packageId:', packageId);
+  console.log('🔧 searchParams:', Object.fromEntries(searchParams));
+
+  const [orderData, setOrderData] = useState<OrderDetails | null>(null);
+  const [packageData, setPackageData] = useState<ConsultationPackage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Lấy orderCode từ URL params một lần và không thay đổi
+  const orderCodeFromUrl = searchParams.get('orderCode');
+  const orderCode = useMemo(() => {
+    const code = orderCodeFromUrl || `TH${Date.now().toString().slice(-8)}`;
+    console.log('🔧 orderCode computed:', code);
+    return code;
+  }, [orderCodeFromUrl]);
 
   useEffect(() => {
-    // Track successful purchase (analytics)
-    console.log('Purchase successful:', { packageId, userId: user?.id });
-  }, [packageId, user?.id]);
+    console.log('🔧 useEffect triggered with deps:', { packageId, orderCodeFromUrl });
 
-  if (!packageData) {
+    const loadOrderAndPackageData = async () => {
+      try {
+        console.log('🔧 Loading data...');
+        setLoading(true);
+        setError(null);
+
+        // Nếu có orderCode từ URL, lấy thông tin order
+        if (orderCodeFromUrl) {
+          try {
+            const orderResponse = await getOrderByCode(orderCode);
+            setOrderData(orderResponse.data);
+          } catch (err) {
+            console.warn('Failed to load order data:', err);
+          }
+        }
+
+        // Nếu có packageId, lấy thông tin package
+        if (packageId) {
+          try {
+            const packageResponse = await fetchPackageById(packageId);
+            const processedPackage = processPackageForUI(packageResponse.data);
+            setPackageData(processedPackage);
+          } catch (err) {
+            console.warn('Failed to load package data:', err);
+          }
+        }
+
+        // Track successful purchase (analytics)
+        console.log('Purchase successful:', {
+          packageId,
+          userId: user?.id,
+          orderCode
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tải thông tin');
+        console.error('Load order/package data error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrderAndPackageData();
+  }, [packageId, orderCodeFromUrl]); const copyZaloLink = () => {
+    if (packageData && orderCode) {
+      const zaloLink = generateZaloLink(orderCode, packageData.name);
+      navigator.clipboard.writeText(zaloLink);
+      alert('Đã copy link Zalo!');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center py-12">
+        <div className="container px-4 w-full">
+          <div className="max-w-md mx-auto text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-red-600 font-bold text-xl">!</span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Có lỗi xảy ra</h3>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <Link to="/" className="btn-primary">Quay về trang chủ</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!packageData && !orderData) {
     return (
       <div className="container py-16 text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Không tìm thấy thông tin đơn hàng</h1>
@@ -25,14 +117,11 @@ const PurchaseSuccessPage: React.FC = () => {
     );
   }
 
-  const copyZaloLink = () => {
-    if (zaloLink) {
-      navigator.clipboard.writeText(zaloLink);
-      alert('Đã copy link Zalo!');
-    }
-  };
-
-  const orderId = `TH${Date.now().toString().slice(-8)}`;
+  // Sử dụng data từ order hoặc package
+  const displayPackageName = orderData?.packageName || packageData?.name || 'Gói tư vấn';
+  const displayAmount = orderData?.amount || packageData?.price || 0;
+  const displayDuration = packageData?.duration || '30 phút';
+  const transactionStatus = orderData?.transaction ? formatTransactionStatus(orderData.transaction.status) : 'Đã thanh toán';
 
   return (
     <div className="bg-gray-50 min-h-screen flex items-center justify-center py-12">
@@ -59,31 +148,31 @@ const PurchaseSuccessPage: React.FC = () => {
 
             <div className="space-y-3 mb-6">
               <div className="flex justify-between">
-                <span className="text-gray-600">Mã đơn hàng:</span>
-                <span className="font-medium text-gray-900">{orderId}</span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-gray-600">Gói dịch vụ:</span>
-                <span className="font-medium text-gray-900">{packageData.name}</span>
+                <span className="font-medium text-gray-900">{displayPackageName}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Thời lượng tư vấn:</span>
-                <span className="font-medium text-gray-900">{packageData.duration} phút</span>
+                <span className="font-medium text-gray-900">{displayDuration}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Tổng tiền:</span>
                 <span className="font-bold text-green-600 text-lg">
-                  {packageData.price.toLocaleString('vi-VN')}đ
+                  {displayAmount.toLocaleString('vi-VN')}đ
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Khách hàng:</span>
-                <span className="font-medium text-gray-900">{user?.username}</span>
+                <span className="font-medium text-gray-900">{user?.username || user?.email || 'Khách hàng'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Trạng thái:</span>
+                <span className="font-medium text-green-600">{transactionStatus}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Thời gian:</span>
                 <span className="font-medium text-gray-900">
-                  {new Date().toLocaleString('vi-VN')}
+                  {orderData?.createdAt ? new Date(orderData.createdAt).toLocaleString('vi-VN') : new Date().toLocaleString('vi-VN')}
                 </span>
               </div>
             </div>
@@ -116,7 +205,7 @@ const PurchaseSuccessPage: React.FC = () => {
                 <div>
                   <h3 className="font-semibold text-gray-900">Cung cấp mã đơn hàng</h3>
                   <p className="text-gray-600 text-sm">
-                    Chia sẻ mã đơn hàng <span className="font-medium">{orderId}</span> với tư vấn viên
+                    Chia sẻ mã đơn hàng <span className="font-medium">{orderCode}</span> với tư vấn viên
                   </p>
                 </div>
               </div>
@@ -128,7 +217,7 @@ const PurchaseSuccessPage: React.FC = () => {
                 <div>
                   <h3 className="font-semibold text-gray-900">Bắt đầu tư vấn</h3>
                   <p className="text-gray-600 text-sm">
-                    Chuyên gia sẽ tư vấn cho bạn trong {packageData.duration} phút
+                    Chuyên gia sẽ tư vấn cho bạn trong {displayDuration}
                   </p>
                 </div>
               </div>
@@ -149,22 +238,23 @@ const PurchaseSuccessPage: React.FC = () => {
               <p className="text-green-700 text-sm mb-3">
                 Click vào nút bên dưới để mở Zalo và bắt đầu cuộc trò chuyện với chuyên gia của chúng tôi.
               </p>
-
-              <div className="flex space-x-3">
-                <a
-                  href={zaloLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-semibold text-center transition-colors"
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    const zaloLink = generateZaloLink(orderCode, displayPackageName);
+                    window.open(zaloLink, '_blank');
+                  }}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center text-sm"
                 >
-                  Mở Zalo Ngay
-                </a>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Mở Zalo
+                </button>
                 <button
                   onClick={copyZaloLink}
-                  className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                  title="Copy link Zalo"
+                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center text-sm"
                 >
-                  <Copy className="w-5 h-5 text-gray-600" />
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Link
                 </button>
               </div>
             </div>
@@ -192,7 +282,7 @@ const PurchaseSuccessPage: React.FC = () => {
               <div className="flex items-start space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
                 <span className="text-gray-700">
-                  Cuộc tư vấn có thời lượng {packageData.duration} phút và hoàn toàn bảo mật
+                  Cuộc tư vấn có thời lượng {displayDuration} và hoàn toàn bảo mật
                 </span>
               </div>
               <div className="flex items-start space-x-2">

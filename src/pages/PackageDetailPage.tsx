@@ -1,23 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { mockPackages, mockFeedbacks } from '../lib/mockData';
+import { fetchPackageById, submitReview, processPackageForUI, type PackageDetailResponse } from '../services/packageService';
+import { createPayment } from '../services/paymentService';
 import StarRating from '../components/StarRating';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ToastContainer from '../components/ToastContainer';
+import { useToast } from '../hooks/useToast';
 import { CheckCircle, MessageSquare, User } from 'lucide-react';
+import type { ConsultationPackage, ReviewSubmission } from '../types';
 
 const PackageDetailPage: React.FC = () => {
   const { packageId } = useParams<{ packageId: string }>();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { toasts, success, error, removeToast } = useToast();
 
-  const [newFeedback, setNewFeedback] = useState({
+  const [packageData, setPackageData] = useState<ConsultationPackage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+
+  const [newFeedback, setNewFeedback] = useState<ReviewSubmission>({
     rating: 5,
     comment: ''
   });
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 
-  const packageData = mockPackages.find(pkg => pkg.id === packageId);
-  const packageFeedbacks = mockFeedbacks.filter(feedback => feedback.packageId === packageId);
+  // Scroll to top when component mounts or packageId changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [packageId]);
+
+  useEffect(() => {
+    if (!packageId) return;
+
+    const loadPackage = async () => {
+      try {
+        setLoading(true);
+        setLoadingError(null);
+        const response: PackageDetailResponse = await fetchPackageById(packageId);
+
+        // Process package for UI (add features and type)
+        const processedPackage = processPackageForUI(response.data);
+        setPackageData(processedPackage);
+      } catch (err) {
+        setLoadingError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tải dữ liệu');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPackage();
+  }, [packageId]);
+
+  if (loading) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (loadingError) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-600 font-bold text-xl">!</span>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Có lỗi xảy ra</h3>
+          <p className="text-gray-600 mb-6">{loadingError}</p>
+          <div className="flex gap-3 justify-center">
+            <Link
+              to="/"
+              className="bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition-colors"
+            >
+              Quay về trang chủ
+            </Link>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition-colors"
+            >
+              Thử lại
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!packageData) {
     return (
@@ -28,26 +100,61 @@ const PackageDetailPage: React.FC = () => {
     );
   }
 
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
     if (!isAuthenticated) {
-      navigate('/login', { state: { from: { pathname: `/package/${packageId}/purchase` } } });
-    } else {
-      navigate(`/package/${packageId}/purchase`);
+      navigate('/login', { state: { from: { pathname: `/package/${packageId}` } } });
+      return;
+    }
+
+    if (!packageId) return;
+
+    try {
+      setProcessingPayment(true);
+      const response = await createPayment(packageId);
+
+      if (response.data.checkoutUrl) {
+        success('Chuyển hướng đến trang thanh toán...');
+        // Chuyển hướng đến trang thanh toán
+        window.location.href = response.data.checkoutUrl;
+      } else {
+        throw new Error('Không nhận được URL thanh toán');
+      }
+    } catch (err) {
+      error(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tạo thanh toán');
+    } finally {
+      setProcessingPayment(false);
     }
   };
 
-  const averageRating = packageFeedbacks.length > 0
-    ? packageFeedbacks.reduce((sum, feedback) => sum + feedback.rating, 0) / packageFeedbacks.length
+  const reviews = packageData.reviews || [];
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
     : 0;
 
-  const submitFeedback = (e: React.FormEvent) => {
+  const submitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would be an API call
-    console.log('New feedback:', newFeedback);
-    setNewFeedback({ rating: 5, comment: '' });
-    setShowFeedbackForm(false);
-    // Show success message
-    alert('Cảm ơn bạn đã đánh giá!');
+    if (!packageId) return;
+
+    try {
+      setSubmittingReview(true);
+      await submitReview(packageId, newFeedback);
+
+      // Refresh package data to get new review
+      const response: PackageDetailResponse = await fetchPackageById(packageId);
+      const processedPackage = processPackageForUI(response.data);
+      setPackageData(processedPackage);
+
+      // Reset form
+      setNewFeedback({ rating: 5, comment: '' });
+      setShowFeedbackForm(false);
+
+      // Show success message
+      success('Cảm ơn bạn đã đánh giá!');
+    } catch (err) {
+      error(err instanceof Error ? err.message : 'Có lỗi xảy ra khi gửi đánh giá');
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   return (
@@ -89,7 +196,7 @@ const PackageDetailPage: React.FC = () => {
                     <div className="flex items-center space-x-1">
                       <StarRating rating={averageRating} size="md" />
                       <span className="text-sm text-gray-600 ml-2">
-                        ({packageFeedbacks.length} đánh giá)
+                        ({reviews.length} đánh giá)
                       </span>
                     </div>
                   </div>
@@ -110,12 +217,14 @@ const PackageDetailPage: React.FC = () => {
                   Tính năng của gói
                 </h3>
                 <div className="space-y-3">
-                  {packageData.features.map((feature, index) => (
+                  {packageData.features?.map((feature, index) => (
                     <div key={index} className="flex items-start space-x-3">
                       <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                       <span className="text-gray-700">{feature}</span>
                     </div>
-                  ))}
+                  )) || (
+                      <p className="text-gray-600">Không có thông tin tính năng.</p>
+                    )}
                 </div>
               </div>
             </div>
@@ -165,13 +274,18 @@ const PackageDetailPage: React.FC = () => {
                       />
                     </div>
                     <div className="flex space-x-3">
-                      <button type="submit" className="btn-primary">
-                        Gửi đánh giá
+                      <button
+                        type="submit"
+                        className="btn-primary"
+                        disabled={submittingReview}
+                      >
+                        {submittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowFeedbackForm(false)}
                         className="btn-secondary"
+                        disabled={submittingReview}
                       >
                         Hủy
                       </button>
@@ -182,22 +296,22 @@ const PackageDetailPage: React.FC = () => {
 
               {/* Feedback List */}
               <div className="space-y-6">
-                {packageFeedbacks.length > 0 ? (
-                  packageFeedbacks.map((feedback) => (
-                    <div key={feedback.id} className="border-b border-gray-200 pb-6 last:border-b-0">
+                {reviews.length > 0 ? (
+                  reviews.map((review) => (
+                    <div key={review.id} className="border-b border-gray-200 pb-6 last:border-b-0">
                       <div className="flex items-start space-x-4">
                         <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                           <User className="w-5 h-5 text-gray-500" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
-                            <h4 className="font-medium text-gray-900">{feedback.userName}</h4>
-                            <StarRating rating={feedback.rating} size="sm" />
+                            <h4 className="font-medium text-gray-900">{review.user.fullName}</h4>
+                            <StarRating rating={review.rating} size="sm" />
                             <span className="text-sm text-gray-500">
-                              {new Date(feedback.createdAt).toLocaleDateString('vi-VN')}
+                              {new Date(review.createdAt).toLocaleDateString('vi-VN')}
                             </span>
                           </div>
-                          <p className="text-gray-700">{feedback.comment}</p>
+                          <p className="text-gray-700">{review.comment}</p>
                         </div>
                       </div>
                     </div>
@@ -219,6 +333,9 @@ const PackageDetailPage: React.FC = () => {
               <div className="text-center mb-6">
                 <div className="text-4xl font-bold text-green-600 mb-2">
                   {packageData.price.toLocaleString('vi-VN')}đ
+                </div>
+                <div className="text-gray-500 font-medium">
+                  {packageData.duration}
                 </div>
               </div>
 
@@ -243,9 +360,15 @@ const PackageDetailPage: React.FC = () => {
 
               <button
                 onClick={handlePurchase}
-                className="w-full btn-primary text-lg py-3"
+                disabled={processingPayment}
+                className="w-full btn-primary text-lg py-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isAuthenticated ? 'Mua Ngay' : 'Đăng nhập để mua'}
+                {processingPayment
+                  ? '⏳ Đang xử lý thanh toán...'
+                  : isAuthenticated
+                    ? '💳 Thanh toán ngay'
+                    : 'Đăng nhập để mua'
+                }
               </button>
 
               <div className="mt-4 text-center">
@@ -269,6 +392,9 @@ const PackageDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 };
