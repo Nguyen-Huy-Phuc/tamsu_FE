@@ -34,6 +34,12 @@ export const createPayment = async (packageId: string): Promise<PaymentResponse>
     }
 
     console.log('🔧 Making API call to:', `${API_BASE_URL}/transactions`);
+
+    // Tạo success URL với package ID
+    const baseUrl = window.location.origin;
+    const successUrl = `${baseUrl}/payment/success?packageId=${packageId}`;
+    const cancelUrl = `${baseUrl}/payment/fail`;
+
     const response = await fetch(`${API_BASE_URL}/transactions`, {
         method: 'POST',
         headers: {
@@ -41,7 +47,9 @@ export const createPayment = async (packageId: string): Promise<PaymentResponse>
             'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-            packageId: packageId
+            packageId: packageId,
+            returnUrl: successUrl,
+            cancelUrl: cancelUrl
         }),
     });
 

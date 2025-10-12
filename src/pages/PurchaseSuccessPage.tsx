@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getOrderByCode, generateZaloLink, formatTransactionStatus, type OrderDetails } from '../services/transactionService';
 import { fetchPackageById, processPackageForUI } from '../services/packageService';
@@ -10,9 +10,12 @@ import type { ConsultationPackage } from '../types';
 const PurchaseSuccessPage: React.FC = () => {
   console.log('🔧 PurchaseSuccessPage render');
 
-  const { packageId } = useParams<{ packageId: string }>();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+
+  // Lấy packageId và orderCode từ URL parameters
+  const packageId = searchParams.get('packageId');
+  const orderCodeFromUrl = searchParams.get('orderCode');
 
   console.log('🔧 packageId:', packageId);
   console.log('🔧 searchParams:', Object.fromEntries(searchParams));
@@ -23,7 +26,6 @@ const PurchaseSuccessPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Lấy orderCode từ URL params một lần và không thay đổi
-  const orderCodeFromUrl = searchParams.get('orderCode');
   const orderCode = useMemo(() => {
     const code = orderCodeFromUrl || `TH${Date.now().toString().slice(-8)}`;
     console.log('🔧 orderCode computed:', code);
@@ -38,6 +40,13 @@ const PurchaseSuccessPage: React.FC = () => {
         console.log('🔧 Loading data...');
         setLoading(true);
         setError(null);
+
+        // Nếu không có orderCode và packageId, vẫn hiển thị trang thành công chung
+        if (!orderCodeFromUrl && !packageId) {
+          console.log('🔧 No parameters, showing generic success page');
+          setLoading(false);
+          return;
+        }
 
         // Nếu có orderCode từ URL, lấy thông tin order
         if (orderCodeFromUrl) {
@@ -110,9 +119,31 @@ const PurchaseSuccessPage: React.FC = () => {
 
   if (!packageData && !orderData) {
     return (
-      <div className="container py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Không tìm thấy thông tin đơn hàng</h1>
-        <Link to="/" className="btn-primary">Quay về trang chủ</Link>
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center py-12">
+        <div className="container px-4 w-full">
+          <div className="max-w-md mx-auto text-center">
+            {/* Success Header */}
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-12 h-12 text-green-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Thanh Toán Thành Công!
+            </h1>
+            <p className="text-gray-600 mb-8">
+              Cảm ơn bạn đã tin tưởng dịch vụ của TamSu Health. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="space-y-4">
+              <Link to="/" className="block w-full btn-primary">
+                Về Trang Chủ
+              </Link>
+              <Link to="/blog" className="block w-full btn-secondary">
+                Đọc Blog
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -314,12 +345,14 @@ const PurchaseSuccessPage: React.FC = () => {
             >
               Về Trang Chủ
             </Link>
-            <Link
-              to={`/package/${packageId}`}
-              className="flex-1 text-center btn-secondary"
-            >
-              Xem Lại Gói Dịch Vụ
-            </Link>
+            {packageId && (
+              <Link
+                to={`/package/${packageId}`}
+                className="flex-1 text-center btn-secondary"
+              >
+                Xem Lại Gói Dịch Vụ
+              </Link>
+            )}
           </div>
         </div>
       </div>

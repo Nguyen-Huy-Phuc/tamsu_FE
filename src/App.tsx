@@ -46,7 +46,7 @@ function App() {
               {/* User routes */}
               <Route path="profile" element={<ProfilePage />} />
               <Route path="purchase-history" element={<PurchaseHistoryPage />} />
-              <Route path="purchase/success/:packageId" element={<PurchaseSuccessPage />} />
+              <Route path="payment/success" element={<PurchaseSuccessPage />} />
               <Route path="payment/fail" element={<PaymentFailPage />} />
               <Route path="payment/cancel" element={<PaymentFailPage />} />
             </Route>
