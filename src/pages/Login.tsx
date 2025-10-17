@@ -79,6 +79,15 @@ const Login: React.FC = () => {
       const result = await login(data.usernameOrEmail, data.password);
 
       if (result.success) {
+        // Check if user is admin and redirect accordingly
+        const storedUser = localStorage.getItem('tamsu_user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          if (userData.role === 'Admin') {
+            navigate('/admin', { replace: true });
+            return;
+          }
+        }
         navigate(from, { replace: true });
       } else {
         setApiError(result.error || 'Tài khoản hoặc mật khẩu không chính xác');
