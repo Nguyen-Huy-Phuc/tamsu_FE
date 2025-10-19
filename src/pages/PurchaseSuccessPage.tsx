@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { getOrderByCode, generateZaloLink, formatTransactionStatus, type OrderDetails } from '../services/transactionService';
 import { fetchPackageById, processPackageForUI } from '../services/packageService';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { CheckCircle, MessageCircle, Clock, Phone, Copy } from 'lucide-react';
+import { CheckCircle, MessageCircle, Phone, Clock, Copy } from 'lucide-react';
 import type { ConsultationPackage } from '../types';
 
 const PurchaseSuccessPage: React.FC = () => {
@@ -121,26 +121,181 @@ const PurchaseSuccessPage: React.FC = () => {
     return (
       <div className="bg-gray-50 min-h-screen flex items-center justify-center py-12">
         <div className="container px-4 w-full">
-          <div className="max-w-md mx-auto text-center">
+          <div className="max-w-2xl mx-auto">
             {/* Success Header */}
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-12 h-12 text-green-600" />
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-12 h-12 text-green-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Thanh Toán Thành Công!
+              </h1>
+              <p className="text-gray-600 mb-8">
+                Cảm ơn bạn đã tin tưởng dịch vụ của TamSu Health. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.
+              </p>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Thanh Toán Thành Công!
-            </h1>
-            <p className="text-gray-600 mb-8">
-              Cảm ơn bạn đã tin tưởng dịch vụ của TamSu Health. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.
-            </p>
+
+            {/* Customer Info */}
+            <div className="card mb-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Thông tin khách hàng
+              </h2>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tên khách hàng:</span>
+                  <span className="font-medium text-gray-900">{user?.fullName || user?.username || 'Khách hàng'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Email:</span>
+                  <span className="font-medium text-gray-900">{user?.email || 'Chưa cập nhật'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Trạng thái:</span>
+                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                    Đã thanh toán
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Next Steps */}
+            <div className="card mb-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Các bước tiếp theo
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-sm font-bold">1</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Xác nhận thông tin</h3>
+                    <p className="text-gray-600 text-sm">
+                      Chúng tôi sẽ liên hệ với bạn trong vòng 24h để xác nhận và sắp xếp lịch tư vấn phù hợp.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-sm font-bold">2</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Chuẩn bị buổi tư vấn</h3>
+                    <p className="text-gray-600 text-sm">
+                      Hãy suy nghĩ về những vấn đề bạn muốn trao đổi để buổi tư vấn đạt hiệu quả tốt nhất.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-sm font-bold">3</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Tham gia buổi tư vấn</h3>
+                    <p className="text-gray-600 text-sm">
+                      Đúng giờ hẹn, bạn sẽ được tư vấn trực tiếp với chuyên gia tâm lý của chúng tôi.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Support */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <MessageCircle className="w-5 h-5 text-pink-600" />
+                  <span className="font-semibold text-pink-800">Liên hệ tư vấn</span>
+                </div>
+                <p className="text-pink-700 text-sm mb-3">
+                  Có thắc mắc về dịch vụ? Hãy liên hệ với chúng tôi:
+                </p>
+                <a
+                  href="mailto:huyennths181069@fpt.edu.vn"
+                  className="inline-flex items-center px-3 py-2 bg-pink-100 hover:bg-pink-200 text-pink-800 rounded-md text-sm font-medium transition-colors"
+                >
+                  📧 Gửi Email
+                </a>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Phone className="w-5 h-5 text-blue-600" />
+                  <span className="font-semibold text-blue-800">Hotline hỗ trợ</span>
+                </div>
+                <p className="text-blue-700 text-sm mb-3">
+                  Gọi ngay nếu cần hỗ trợ khẩn cấp:
+                </p>
+                <a
+                  href="tel:0865012398"
+                  className="inline-flex items-center px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-md text-sm font-medium transition-colors"
+                >
+                  📞 0865012398
+                </a>
+                <p className="text-blue-600 text-xs mt-1">Hoạt động 24/7</p>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <MessageCircle className="w-5 h-5 text-green-600" />
+                  <span className="font-semibold text-green-800">Chat Zalo</span>
+                </div>
+                <p className="text-green-700 text-sm mb-3">
+                  Chat trực tiếp qua Zalo để được hỗ trợ nhanh chóng:
+                </p>
+                <a
+                  href="https://zalo.me/0865012398"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-3 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-md text-sm font-medium transition-colors"
+                >
+                  💬 Chat Ngay
+                </a>
+              </div>
+            </div>
+
+            {/* Important Notes */}
+            <div className="card mb-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Lưu ý quan trọng
+              </h2>
+              <div className="space-y-3 text-sm text-gray-600">
+                <div className="flex items-start space-x-2">
+                  <Clock className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                  <p>
+                    Chúng tôi sẽ liên hệ với bạn trong vòng <span className="font-semibold text-gray-900">24 giờ</span> kể từ khi thanh toán thành công.
+                  </p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <CheckCircle className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                  <p>
+                    Mọi thông tin cá nhân và nội dung tư vấn đều được <span className="font-semibold text-gray-900">bảo mật tuyệt đối</span>.
+                  </p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <MessageCircle className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                  <p>
+                    Nếu có bất kỳ thay đổi nào về lịch hẹn, chúng tôi sẽ thông báo trước <span className="font-semibold text-gray-900">ít nhất 2 giờ</span>.
+                  </p>
+                </div>
+              </div>
+            </div>
 
             {/* Action Buttons */}
             <div className="space-y-4">
-              <Link to="/" className="block w-full btn-primary">
-                Về Trang Chủ
+              <Link to="/purchase-history" className="block w-full btn-primary">
+                Xem Lịch Sử Đơn Hàng
               </Link>
-              <Link to="/blog" className="block w-full btn-secondary">
-                Đọc Blog
-              </Link>
+              <div className="grid grid-cols-2 gap-4">
+                <Link to="/" className="btn-secondary text-center">
+                  Về Trang Chủ
+                </Link>
+                <Link to="/blog" className="btn-secondary text-center">
+                  Đọc Blog
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -298,7 +453,7 @@ const PurchaseSuccessPage: React.FC = () => {
               <p className="text-blue-700 text-sm mb-2">
                 Gọi ngay nếu cần hỗ trợ khẩn cấp hoặc có thắc mắc về đơn hàng:
               </p>
-              <p className="font-bold text-blue-900">📞 1900-xxxx</p>
+              <p className="font-bold text-blue-900">📞 0865012398</p>
               <p className="text-blue-600 text-sm">Hoạt động 24/7</p>
             </div>
           </div>

@@ -106,7 +106,7 @@ const HomePage: React.FC = () => {
           {/* Main Heading */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-6 md:mb-8 leading-tight tracking-tight max-w-6xl mx-auto">
             <span className="block text-white mb-2 md:mb-3">
-              Tư Vấn Giới Tình Và Mối quan hệ
+              Tư Vấn Giới Tính Và Mối quan hệ
             </span>
             <span className="block text-blue-200 animate-pulse">
               Tâm Sinh Lý Tình Dục
@@ -392,10 +392,10 @@ const HomePage: React.FC = () => {
               <ArrowRight className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 ml-3 md:ml-4 group-hover:translate-x-3 transition-transform" />
             </Link>
 
-            <button className="group flex items-center justify-center px-8 md:px-12 lg:px-16 py-4 md:py-5 lg:py-6 bg-white/30 backdrop-blur-lg border-2 border-white/50 text-gray-800 rounded-2xl font-bold text-lg md:text-xl lg:text-2xl hover:bg-white/40 hover:border-white/60 transition-all duration-300">
+            <div className="group bg-gradient-to-r from-pink-500/90 to-rose-500/90 backdrop-blur-sm rounded-2xl p-4 md:p-6 text-white hover:from-pink-600/90 hover:to-rose-600/90 transition-all duration-300 cursor-pointer border border-white/20 flex items-center justify-center">
               <Phone className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 mr-3 md:mr-4 group-hover:animate-pulse" />
-              Hotline: 1900-TAMSU
-            </button>
+              Hotline: 0865012398
+            </div>
           </div>
 
           {/* Trust Stats */}
@@ -403,7 +403,7 @@ const HomePage: React.FC = () => {
             {[
               { value: "1000+", label: "Khách hàng hài lòng", color: "text-blue-700" },
               { value: "24/7", label: "Hỗ trợ không ngừng", color: "text-pink-700" },
-              { value: "10+", label: "Năm kinh nghiệm", color: "text-blue-800" },
+              { value: "3+", label: "Năm kinh nghiệm", color: "text-blue-800" },
               { value: "100%", label: "Bảo mật thông tin", color: "text-pink-800" }
             ].map((stat, index) => (
               <div key={index} className="group flex flex-col items-center">

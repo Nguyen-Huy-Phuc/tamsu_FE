@@ -148,7 +148,7 @@ const PaymentFailPage: React.FC = () => {
                                 <div>
                                     <h3 className="font-semibold text-gray-900">Liên hệ hỗ trợ</h3>
                                     <p className="text-gray-600 text-sm">
-                                        Gọi hotline 1900-xxxx nếu vấn đề vẫn tiếp tục xảy ra
+                                        Gọi hotline 0865012398 nếu vấn đề vẫn tiếp tục xảy ra
                                     </p>
                                 </div>
                             </div>

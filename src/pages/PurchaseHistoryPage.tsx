@@ -1,390 +1,368 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     ShoppingBag,
     Calendar,
-    Clock,
     CheckCircle,
     XCircle,
     AlertCircle,
     DollarSign,
     Filter,
     Search,
-    Eye,
-    Star,
-    MessageCircle,
-    Package
+    Package,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Eye
 } from 'lucide-react';
-
-interface PurchaseHistory {
-    id: string;
-    packageName: string;
-    packageType: 'basic' | 'advanced';
-    price: number;
-    purchaseDate: string;
-    status: 'completed' | 'pending' | 'cancelled' | 'refunded';
-    duration: number; // in minutes
-    sessionDate?: string;
-    rating?: number;
-    feedback?: string;
-    consultantName?: string;
-}
+import {
+    fetchTransactions,
+    formatTransactionStatus,
+    getStatusColor,
+    formatPrice,
+    type Transaction
+} from '../services/transactionUserService';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const PurchaseHistoryPage: React.FC = () => {
-    const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'cancelled'>('all');
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const [filter, setFilter] = useState<'all' | 'Completed' | 'Processing' | 'Pending' | 'Failed' | 'Cancelled'>('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const pageSize = 10;
 
-    // Mock data - in real app this would come from API
-    const purchaseHistory: PurchaseHistory[] = [
-        {
-            id: 'PH001',
-            packageName: 'Tư Vấn Cơ Bản',
-            packageType: 'basic',
-            price: 35000,
-            purchaseDate: '2024-09-15',
-            status: 'completed',
-            duration: 30,
-            sessionDate: '2024-09-16',
-            rating: 5,
-            feedback: 'Rất hài lòng với buổi tư vấn. Chuyên gia rất tận tâm và chuyên nghiệp.',
-            consultantName: 'Dr. Nguyễn Thị Mai'
-        },
-        {
-            id: 'PH002',
-            packageName: 'Tư Vấn Chuyên Sâu',
-            packageType: 'advanced',
-            price: 75000,
-            purchaseDate: '2024-09-20',
-            status: 'completed',
-            duration: 60,
-            sessionDate: '2024-09-22',
-            rating: 5,
-            feedback: 'Buổi tư vấn rất hữu ích, giúp tôi hiểu rõ hơn về vấn đề của mình.',
-            consultantName: 'Dr. Trần Văn Hùng'
-        },
-        {
-            id: 'PH003',
-            packageName: 'Tư Vấn Cơ Bản',
-            packageType: 'basic',
-            price: 35000,
-            purchaseDate: '2024-09-25',
-            status: 'pending',
-            duration: 30,
-            sessionDate: '2024-09-28'
-        },
-        {
-            id: 'PH004',
-            packageName: 'Tư Vấn Chuyên Sâu',
-            packageType: 'advanced',
-            price: 75000,
-            purchaseDate: '2024-08-10',
-            status: 'cancelled',
-            duration: 60
-        }
-    ];
+    useEffect(() => {
+        loadTransactions();
+    }, [currentPage]);
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'completed':
-                return 'from-rose-400 to-pink-400';
-            case 'pending':
-                return 'from-yellow-500 to-orange-500';
-            case 'cancelled':
-                return 'from-red-500 to-pink-500';
-            case 'refunded':
-                return 'from-gray-500 to-slate-500';
-            default:
-                return 'from-rose-500 to-pink-500';
+    const loadTransactions = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await fetchTransactions(currentPage, pageSize);
+            setTransactions(response.data.data);
+            setTotalPages(response.data.totalPage);
+            setTotalCount(response.data.totalCount);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tải lịch sử đơn hàng');
+            console.error('Error loading transactions:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'completed':
-                return CheckCircle;
-            case 'pending':
-                return Clock;
-            case 'cancelled':
-                return XCircle;
-            case 'refunded':
-                return AlertCircle;
-            default:
-                return Clock;
-        }
-    };
-
-    const getStatusText = (status: string) => {
-        switch (status) {
-            case 'completed':
-                return 'Hoàn thành';
-            case 'pending':
-                return 'Chờ tư vấn';
-            case 'cancelled':
-                return 'Đã hủy';
-            case 'refunded':
-                return 'Đã hoàn tiền';
-            default:
-                return 'Chưa xác định';
-        }
-    };
-
-    const filteredHistory = purchaseHistory.filter(item => {
-        const matchesFilter = filter === 'all' || item.status === filter;
-        const matchesSearch = item.packageName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.id.toLowerCase().includes(searchTerm.toLowerCase());
+    // Filter transactions
+    const filteredTransactions = transactions.filter(transaction => {
+        const matchesFilter = filter === 'all' || transaction.status === filter;
+        const matchesSearch =
+            transaction.consultingPackage.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            transaction.referenceCode.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesFilter && matchesSearch;
     });
 
-    const totalSpent = purchaseHistory
-        .filter(item => item.status === 'completed')
-        .reduce((sum, item) => sum + item.price, 0);
-
-    const totalSessions = purchaseHistory.filter(item => item.status === 'completed').length;
-
-    const renderStars = (rating: number) => {
-        return Array.from({ length: 5 }, (_, index) => (
-            <Star
-                key={index}
-                className={`w-4 h-4 ${index < rating
-                    ? 'text-yellow-400 fill-current'
-                    : 'text-gray-300'
-                    }`}
-            />
-        ));
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'Completed':
+                return <CheckCircle className="w-5 h-5 text-green-600" />;
+            case 'Processing':
+                return <AlertCircle className="w-5 h-5 text-blue-600" />;
+            case 'Pending':
+                return <Clock className="w-5 h-5 text-yellow-600" />;
+            case 'Failed':
+            case 'Cancelled':
+                return <XCircle className="w-5 h-5 text-red-600" />;
+            default:
+                return <AlertCircle className="w-5 h-5 text-gray-600" />;
+        }
     };
 
+    // Stats calculation
+    const completedTransactions = transactions.filter(t => t.status === 'Completed');
+    const pendingTransactions = transactions.filter(t => t.status === 'Pending' || t.status === 'Processing');
+    const totalSpent = completedTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <div className="flex items-center justify-center py-12">
+                    <LoadingSpinner />
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-pink-500 rounded-lg flex items-center justify-center">
-                            <ShoppingBag className="w-5 h-5 text-white" />
-                        </div>
-                        <h1 className="text-3xl md:text-4xl font-black text-gray-900">
-                            Lịch Sử Mua Gói
-                        </h1>
-                    </div>
-                    <p className="text-gray-600 text-lg">
-                        Theo dõi tất cả các gói dịch vụ tư vấn đã mua và trạng thái của chúng
+        <div className="container mx-auto px-4 py-8">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Lịch Sử Mua Hàng</h1>
+                    <p className="text-gray-600 mt-2">
+                        Xem lại tất cả các gói tư vấn bạn đã mua ({totalCount} đơn hàng)
                     </p>
                 </div>
+                <div className="bg-pink-100 p-4 rounded-lg">
+                    <ShoppingBag className="w-8 h-8 text-pink-600" />
+                </div>
+            </div>
 
-                {/* Stats Overview */}
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-white rounded-3xl p-6 shadow-xl border border-white/60 backdrop-blur-sm">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600 mb-1">Tổng chi tiêu</p>
-                                <p className="text-2xl font-bold text-rose-600">
-                                    {totalSpent.toLocaleString('vi-VN')}đ
-                                </p>
-                            </div>
-                            <div className="w-12 h-12 bg-gradient-to-r from-rose-400 to-pink-400 rounded-2xl flex items-center justify-center">
-                                <DollarSign className="w-6 h-6 text-white" />
-                            </div>
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                    {error}
+                    <button
+                        onClick={loadTransactions}
+                        className="ml-4 underline hover:no-underline"
+                    >
+                        Thử lại
+                    </button>
+                </div>
+            )}
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="flex items-center">
+                        <div className="p-3 bg-green-100 rounded-lg">
+                            <CheckCircle className="w-6 h-6 text-green-600" />
                         </div>
-                    </div>
-
-                    <div className="bg-white rounded-3xl p-6 shadow-xl border border-white/60 backdrop-blur-sm">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600 mb-1">Phiên đã hoàn thành</p>
-                                <p className="text-2xl font-bold text-rose-600">{totalSessions}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-gradient-to-r from-rose-500 to-pink-500 rounded-2xl flex items-center justify-center">
-                                <CheckCircle className="w-6 h-6 text-white" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-3xl p-6 shadow-xl border border-white/60 backdrop-blur-sm">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600 mb-1">Phiên chờ tư vấn</p>
-                                <p className="text-2xl font-bold text-pink-600">
-                                    {purchaseHistory.filter(item => item.status === 'pending').length}
-                                </p>
-                            </div>
-                            <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-rose-400 rounded-2xl flex items-center justify-center">
-                                <Clock className="w-6 h-6 text-white" />
-                            </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Hoàn thành</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {completedTransactions.length}
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Filters and Search */}
-                <div className="bg-white rounded-3xl p-6 shadow-xl border border-white/60 backdrop-blur-sm mb-8">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        {/* Search */}
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm theo tên gói hoặc mã đơn hàng..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-rose-500 focus:ring focus:ring-rose-200 transition-all duration-300"
-                            />
+                <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="flex items-center">
+                        <div className="p-3 bg-yellow-100 rounded-lg">
+                            <Clock className="w-6 h-6 text-yellow-600" />
                         </div>
-
-                        {/* Filter Buttons */}
-                        <div className="flex items-center gap-2">
-                            <Filter className="w-5 h-5 text-gray-400" />
-                            {[
-                                { key: 'all', label: 'Tất cả', count: purchaseHistory.length },
-                                { key: 'completed', label: 'Hoàn thành', count: purchaseHistory.filter(p => p.status === 'completed').length },
-                                { key: 'pending', label: 'Chờ tư vấn', count: purchaseHistory.filter(p => p.status === 'pending').length },
-                                { key: 'cancelled', label: 'Đã hủy', count: purchaseHistory.filter(p => p.status === 'cancelled').length }
-                            ].map(({ key, label, count }) => (
-                                <button
-                                    key={key}
-                                    onClick={() => setFilter(key as typeof filter)}
-                                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${filter === key
-                                        ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        }`}
-                                >
-                                    {label} ({count})
-                                </button>
-                            ))}
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Đang chờ</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {pendingTransactions.length}
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Purchase History List */}
-                <div className="space-y-6">
-                    {filteredHistory.length === 0 ? (
-                        <div className="text-center py-12">
-                            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-gray-600 mb-2">Không tìm thấy kết quả</h3>
-                            <p className="text-gray-500">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="flex items-center">
+                        <div className="p-3 bg-blue-100 rounded-lg">
+                            <DollarSign className="w-6 h-6 text-blue-600" />
                         </div>
-                    ) : (
-                        filteredHistory.map((purchase) => {
-                            const StatusIcon = getStatusIcon(purchase.status);
-                            return (
-                                <div
-                                    key={purchase.id}
-                                    className="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-white/60 backdrop-blur-sm hover:shadow-2xl transition-all duration-300"
-                                >
-                                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                                        {/* Main Info */}
-                                        <div className="flex-1">
-                                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
-                                                <div>
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <h3 className="text-xl font-bold text-gray-900">{purchase.packageName}</h3>
-                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${purchase.packageType === 'advanced'
-                                                            ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700'
-                                                            : 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700'
-                                                            }`}>
-                                                            {purchase.packageType === 'advanced' ? '💎 Premium' : '🎯 Cơ bản'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                                                        <span className="flex items-center">
-                                                            <Calendar className="w-4 h-4 mr-1" />
-                                                            Mua: {new Date(purchase.purchaseDate).toLocaleDateString('vi-VN')}
-                                                        </span>
-                                                        <span className="flex items-center">
-                                                            <Clock className="w-4 h-4 mr-1" />
-                                                            {purchase.duration} phút
-                                                        </span>
-                                                        <span className="font-semibold text-gray-900">
-                                                            Mã: {purchase.id}
-                                                        </span>
-                                                    </div>
-                                                </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Tổng chi</p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {formatPrice(totalSpent)}
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-                                                <div className="text-right">
-                                                    <p className="text-2xl font-bold text-gray-900 mb-2">
-                                                        {purchase.price.toLocaleString('vi-VN')}đ
-                                                    </p>
-                                                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold text-white bg-gradient-to-r ${getStatusColor(purchase.status)}`}>
-                                                        <StatusIcon className="w-4 h-4 mr-2" />
-                                                        {getStatusText(purchase.status)}
-                                                    </div>
-                                                </div>
-                                            </div>
+                <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="flex items-center">
+                        <div className="p-3 bg-pink-100 rounded-lg">
+                            <Package className="w-6 h-6 text-pink-600" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Tổng đơn</p>
+                            <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                                            {/* Session Details for Completed */}
-                                            {purchase.status === 'completed' && purchase.sessionDate && (
-                                                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200">
-                                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                                        <div className="flex-1">
-                                                            <p className="text-sm font-semibold text-green-800 mb-1">
-                                                                🎉 Phiên tư vấn đã hoàn thành
-                                                            </p>
-                                                            <p className="text-sm text-green-700">
-                                                                <span className="font-medium">Ngày tư vấn:</span> {new Date(purchase.sessionDate).toLocaleDateString('vi-VN')}
-                                                            </p>
-                                                            {purchase.consultantName && (
-                                                                <p className="text-sm text-green-700">
-                                                                    <span className="font-medium">Chuyên gia:</span> {purchase.consultantName}
-                                                                </p>
-                                                            )}
-                                                        </div>
+            {/* Filters */}
+            <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Search */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                            type="text"
+                            placeholder="Tìm kiếm theo tên gói hoặc mã đơn hàng..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                        />
+                    </div>
 
-                                                        {purchase.rating && (
-                                                            <div className="flex flex-col items-start md:items-end">
-                                                                <p className="text-sm font-medium text-green-800 mb-1">Đánh giá:</p>
-                                                                <div className="flex items-center gap-1">
-                                                                    {renderStars(purchase.rating)}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                    {/* Status Filter */}
+                    <div className="relative">
+                        <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <select
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value as any)}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 appearance-none bg-white"
+                        >
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="Completed">Hoàn thành</option>
+                            <option value="Processing">Đang xử lý</option>
+                            <option value="Pending">Chờ thanh toán</option>
+                            <option value="Failed">Thất bại</option>
+                            <option value="Cancelled">Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
-                                                    {purchase.feedback && (
-                                                        <div className="mt-4 pt-4 border-t border-green-200">
-                                                            <p className="text-sm font-medium text-green-800 mb-2 flex items-center">
-                                                                <MessageCircle className="w-4 h-4 mr-1" />
-                                                                Phản hồi của bạn:
-                                                            </p>
-                                                            <p className="text-sm text-green-700 italic">"{purchase.feedback}"</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {/* Pending Session Details */}
-                                            {purchase.status === 'pending' && purchase.sessionDate && (
-                                                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-4 border border-yellow-200">
-                                                    <p className="text-sm font-semibold text-orange-800 mb-1">
-                                                        ⏰ Phiên tư vấn đã được lên lịch
-                                                    </p>
-                                                    <p className="text-sm text-orange-700">
-                                                        <span className="font-medium">Ngày tư vấn:</span> {new Date(purchase.sessionDate).toLocaleDateString('vi-VN')}
-                                                    </p>
-                                                    <p className="text-xs text-pink-600 mt-1">
-                                                        Chúng tôi sẽ liên hệ với bạn trước 24h để xác nhận thời gian cụ thể
-                                                    </p>
-                                                </div>
-                                            )}
+            {/* Transactions List */}
+            {filteredTransactions.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
+                    <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        {searchTerm || filter !== 'all' ? 'Không tìm thấy đơn hàng' : 'Chưa có đơn hàng nào'}
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                        {searchTerm || filter !== 'all'
+                            ? 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm'
+                            : 'Hãy khám phá và đặt mua các gói tư vấn của chúng tôi'
+                        }
+                    </p>
+                    {!searchTerm && filter === 'all' && (
+                        <a
+                            href="/packages"
+                            className="btn-primary inline-flex items-center"
+                        >
+                            <Package className="w-5 h-5 mr-2" />
+                            Xem Gói Tư Vấn
+                        </a>
+                    )}
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {filteredTransactions.map((transaction) => (
+                        <div key={transaction.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+                            <div className="p-6">
+                                {/* Transaction Header */}
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-start space-x-4">
+                                        <div className="p-3 bg-pink-100 rounded-lg">
+                                            <Package className="w-6 h-6 text-pink-600" />
                                         </div>
-
-                                        {/* Action Buttons */}
-                                        <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:min-w-[140px]">
-                                            <button className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                                                <Eye className="w-4 h-4 mr-2" />
-                                                Chi tiết
-                                            </button>
-
-                                            {purchase.status === 'pending' && (
-                                                <button className="flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">
-                                                    <XCircle className="w-4 h-4 mr-2" />
-                                                    Hủy gói
-                                                </button>
-                                            )}
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900">
+                                                {transaction.consultingPackage}
+                                            </h3>
+                                            <p className="text-sm text-gray-600">
+                                                Mã đơn hàng: <span className="font-medium">{transaction.referenceCode}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-2xl font-bold text-gray-900">
+                                            {formatPrice(transaction.amount)}
+                                        </p>
+                                        <div className="flex items-center justify-end mt-1">
+                                            {getStatusIcon(transaction.status)}
+                                            <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                                                {formatTransactionStatus(transaction.status)}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
-                            );
-                        })
-                    )}
+
+                                {/* Transaction Details */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <DollarSign className="w-4 h-4 mr-2" />
+                                        <span>Số tiền: <span className="font-medium text-gray-900">{formatPrice(transaction.amount)}</span></span>
+                                    </div>
+                                    <div className="flex items-center text-sm text-gray-600">
+                                        <Calendar className="w-4 h-4 mr-2" />
+                                        <span>Khách hàng: <span className="font-medium text-gray-900">{transaction.fullName}</span></span>
+                                    </div>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-4">
+                                    <div className="flex items-center space-x-4">
+                                        {transaction.status === 'Completed' && (
+                                            <button className="text-sm text-pink-600 hover:text-pink-700 font-medium">
+                                                Đánh giá dịch vụ
+                                            </button>
+                                        )}
+                                        {(transaction.status === 'Pending' || transaction.status === 'Processing') && (
+                                            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                                                Xem chi tiết lịch hẹn
+                                            </button>
+                                        )}
+                                    </div>
+                                    <button className="text-sm text-gray-600 hover:text-gray-800 flex items-center">
+                                        <Eye className="w-4 h-4 mr-2" />
+                                        Xem chi tiết
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-            </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="mt-8 flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                        Hiển thị {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalCount)} trong tổng số {totalCount} đơn hàng
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={() => setCurrentPage(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+
+                        {[...Array(totalPages)].map((_, index) => {
+                            const page = index + 1;
+                            const isCurrentPage = page === currentPage;
+
+                            // Show first, last, current, and adjacent pages
+                            if (
+                                page === 1 ||
+                                page === totalPages ||
+                                (page >= currentPage - 1 && page <= currentPage + 1)
+                            ) {
+                                return (
+                                    <button
+                                        key={page}
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`px-3 py-2 border rounded-lg transition-colors ${isCurrentPage
+                                            ? 'bg-pink-600 text-white border-pink-600'
+                                            : 'border-gray-300 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        {page}
+                                    </button>
+                                );
+                            } else if (
+                                page === currentPage - 2 ||
+                                page === currentPage + 2
+                            ) {
+                                return (
+                                    <span key={page} className="px-2">...</span>
+                                );
+                            }
+                            return null;
+                        })}
+
+                        <button
+                            onClick={() => setCurrentPage(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

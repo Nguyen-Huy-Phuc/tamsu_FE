@@ -25,6 +25,7 @@ import EditBlogAdmin from './pages/admin/EditBlogAdmin';
 import PackageListAdmin from './pages/admin/PackageListAdmin';
 import CreatePackageAdmin from './pages/admin/CreatePackageAdmin';
 import EditPackageAdmin from './pages/admin/EditPackageAdmin';
+import TransactionListAdmin from './pages/admin/TransactionListAdmin';
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
               <Route path="packages" element={<PackageListAdmin />} />
               <Route path="packages/create" element={<CreatePackageAdmin />} />
               <Route path="packages/:id/edit" element={<EditPackageAdmin />} />
+              <Route path="transactions" element={<TransactionListAdmin />} />
             </Route>
 
             {/* All other routes require authentication */}

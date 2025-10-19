@@ -95,13 +95,13 @@ const EditPackageAdmin: React.FC = () => {
             return;
         }
         if (!formData.price.trim()) {
-            setError('Vui lòng nhập giá');
+            setError('Vui lòng nhập giá (nhập 0 cho gói miễn phí)');
             return;
         }
 
         const priceValue = parseFloat(formData.price);
-        if (isNaN(priceValue) || priceValue <= 0) {
-            setError('Giá phải là số lớn hơn 0');
+        if (isNaN(priceValue) || priceValue < 0) {
+            setError('Giá phải là số không âm (nhập 0 cho gói miễn phí)');
             return;
         }
 

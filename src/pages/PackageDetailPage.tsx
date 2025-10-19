@@ -383,8 +383,8 @@ const PackageDetailPage: React.FC = () => {
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <h4 className="font-semibold text-gray-900 mb-3">Hỗ trợ</h4>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <p>📞 Hotline: 1900-xxxx</p>
-                  <p>📧 Email: support@tamsu.health</p>
+                  <p>📞 Hotline: 0865012398</p>
+                  <p>📧 Email: huyennths181069@fpt.edu.vn</p>
                   <p>🕐 Hỗ trợ: 8:00 - 22:00</p>
                 </div>
               </div>

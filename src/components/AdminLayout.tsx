@@ -7,7 +7,8 @@ import {
     LayoutDashboard,
     LogOut,
     Menu,
-    X
+    X,
+    CreditCard
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -20,6 +21,7 @@ const AdminLayout: React.FC = () => {
         { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
         { name: 'Quản lý Blog', href: '/admin/blogs', icon: BookOpen },
         { name: 'Quản lý Package', href: '/admin/packages', icon: Package },
+        { name: 'Quản Lý Giao Dịch', href: '/admin/transactions', icon: CreditCard },
     ];
 
     const handleLogout = () => {
@@ -49,7 +51,7 @@ const AdminLayout: React.FC = () => {
                         <div className="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center">
                             <span className="text-white font-bold text-sm">T</span>
                         </div>
-                        <span className="ml-2 text-xl font-bold text-gray-900">TamSu Admin</span>
+                        <span className="ml-2 text-xl font-bold text-gray-900">Mine Admin</span>
                     </div>
                     <button
                         className="lg:hidden"

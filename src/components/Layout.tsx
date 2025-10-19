@@ -34,18 +34,6 @@ const Layout: React.FC = () => {
             >
               Blog
             </Link>
-            <Link
-              to="/consultation"
-              className="text-gray-600 hover:text-pink-400 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-pink-50"
-            >
-              Tư vấn
-            </Link>
-            <Link
-              to="/products"
-              className="text-gray-600 hover:text-pink-400 font-medium text-base transition-colors duration-200 px-3 py-2 rounded-full hover:bg-pink-50"
-            >
-              Sản Phẩm
-            </Link>
           </nav>
 
           {/* Right Side */}
@@ -53,7 +41,7 @@ const Layout: React.FC = () => {
             {/* Social Icons */}
             <div className="hidden lg:flex items-center space-x-3">
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/mindedu.journey/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
@@ -65,7 +53,7 @@ const Layout: React.FC = () => {
                 </svg>
               </a>
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/profile.php?id=61581418379025"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white hover:scale-110 transition-transform duration-200"
@@ -142,13 +130,13 @@ const Layout: React.FC = () => {
                   <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center">
                     📞
                   </div>
-                  <span>Hotline: 1900-xxxx</span>
+                  <span>Hotline: 0865012398</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
                     📧
                   </div>
-                  <span>support@tamsu.health</span>
+                  <span>huyennths181069@fpt.edu.vn</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center">
